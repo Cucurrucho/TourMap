@@ -1,5 +1,8 @@
 <template>
     <div>
+        <Modal :show="openModal" @close="this.openModal = false;">
+            <Display :marker-id="marker"></Display>
+        </Modal>
         <GMapMap v-if="located"
                  :center="center"
                  :zoom="18"
@@ -14,7 +17,7 @@
                 :position="center"
                 :icon="'https://developers.google.com/maps/documentation/javascript/examples/full/images/info-i_maps.png'"
             />
-            <GMapMarker :key="index"
+            <GMapMarker @click="toggleModal(marker.id)" :key="index"
                         v-for="(marker, index) in $page.props.markers" :position="{lat: marker.lat, lng: marker.lng}">
             </GMapMarker>
         </GMapMap>
@@ -23,9 +26,12 @@
 
 <script>
 import {router} from "@inertiajs/vue3";
+import Display from "@/Components/Map/Site/Display.vue";
+import Modal from '@/Components/Modal.vue';
 
 export default {
     name: "VisitorMap",
+    components: {Display, Modal},
     mounted() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(this.gotLocation);
@@ -47,7 +53,9 @@ export default {
             bounds: [],
             located: false,
             hasButton: false,
-            loadMarkers: true
+            loadMarkers: true,
+            marker: 0,
+            openModal: false
         }
     },
     methods: {
@@ -85,6 +93,12 @@ export default {
                 controlUI.remove();
             });
             map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlUI); // eslint-disable-line no-undef
+        },
+        toggleModal(marker){
+            this.marker = marker;
+            this.openModal = true;
+
+
         }
     },
     watch: {
