@@ -20,6 +20,7 @@ createInertiaApp({
                 load: {
                     key: 'AIzaSyCYv-72Jwz1NIrWHmomWZsjsmoMSPdNnGs',
                 },
+                autobindAllEvents: true,
             })
             .mount(el);
     },

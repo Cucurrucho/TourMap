@@ -1,7 +1,7 @@
 <script setup>
+import CreatorMap from '@/Components/Map/CreatorMap.vue'
 import { Head } from '@inertiajs/vue3';
-import GuestLayout from "@/Layouts/GuestLayout.vue";
-import VisitorMap from "@/Components/Map/VisitorMap.vue";
+import MainLayout from "@/Layouts/MainLayout.vue";
 defineProps({
     markers: {
         type: Array,
@@ -10,9 +10,9 @@ defineProps({
 </script>
 <template>
     <Head title="Tour Map" />
-    <GuestLayout>
-        <VisitorMap></VisitorMap>
-    </GuestLayout>
+    <MainLayout>
+        <CreatorMap></CreatorMap>
+    </MainLayout>
 </template>
 
 <style scoped>
