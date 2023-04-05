@@ -5,6 +5,17 @@
         </h1>
         <form ref="form">
             <div class="mt-4 shadow-xl bg-gray-100 p-3 rounded-lg">
+                <div class="m-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="provider">
+                        Provider
+                    </label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        v-model="form.name" type="text">
+                    <InputError class="mt-2" :message="form.errors.name">
+                    </InputError>
+                </div>
+
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="type">
                         Type
@@ -35,14 +46,6 @@
                                     </button>
                                 </div>
                                 <div class="mb-4">
-                                    <div class="m-4">
-                                        <label class="block text-gray-700 text-sm font-bold mb-2" for="provider">
-                                            Provider
-                                        </label>
-                                        <input
-                                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                            v-model="text.provider" type="text">
-                                    </div>
                                     <div class="m-4">
                                         <label class="block text-gray-700 text-sm font-bold mb-2" for="provider">
                                             Text
@@ -92,7 +95,7 @@
 
 <script>
 import ImageUpload from "@/Components/Map/Forms/ImageUpload.vue";
-import {router, useForm} from '@inertiajs/vue3'
+import {useForm} from '@inertiajs/vue3'
 import InputError from "@/Components/InputError.vue";
 
 export default {
@@ -111,6 +114,7 @@ export default {
             required: true,
             type: Number
         },
+
     },
     data() {
         return {
@@ -119,7 +123,8 @@ export default {
                 texts: this.startingMarker.texts,
                 type: this.startingMarker.hasOwnProperty('type') ? this.startingMarker.type : '',
                 lat: this.lat,
-                lng: this.lng
+                lng: this.lng,
+                name: this.startingMarker.hasOwnProperty('name') ? this.startingMarker.name : ''
             })
         }
     },
