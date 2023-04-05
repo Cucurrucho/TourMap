@@ -15,7 +15,7 @@ import {router} from "@inertiajs/vue3";
 
 export default {
     name: "Display",
-    components: {CarouselItem, Carousel},
+    components: {Carousel},
     props: {
         markerId: {
             type: Number

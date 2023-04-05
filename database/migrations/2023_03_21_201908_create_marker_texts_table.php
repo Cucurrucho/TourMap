@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('marker_texts', function (Blueprint $table) {
             $table->id();
-            $table->string('provider')->nullable();
             $table->text('text');
             $table->foreignId('marker_id');
             $table->timestamps();
