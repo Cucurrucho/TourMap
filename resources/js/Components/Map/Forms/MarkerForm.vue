@@ -5,9 +5,9 @@
         </h1>
         <form ref="form">
             <div class="mt-4 shadow-xl bg-gray-100 p-3 rounded-lg">
-                <div class="m-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="provider">
-                        Provider
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        Name
                     </label>
                     <input
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -67,8 +67,8 @@
                     <div class="mb-4">
                         <div class="text-center mt-2"><h6>Images</h6></div>
                         <div class="flex mt-2 flex-wrap gap-3 lg:flex-row sm:flex-col sm:justify-start justify-center">
-                            <ImageUpload @uploaded="imageUploaded($event, index)" :starting-index="index"
-                                         @removeImage="removeImage(index)" v-for="(image, index) in form.images"
+                            <ImageUpload v-for="(image, index) in form.images" @uploaded="imageUploaded($event, index)"
+                                         @removeImage="removeImage(index,image)"
                                          :starting-image="`${image.url}`" :key="index">
 
                             </ImageUpload>
@@ -138,12 +138,12 @@ export default {
         addImage() {
             this.form.images.push({url: 'images/upload.png'})
         },
+        removeImage(index, image) {
+            this.form.images.splice(index, 1);
+        },
         selectImage(index) {
             let input = this.$refs['imageInputRef' + index][0];
             input.click();
-        },
-        removeImage(index) {
-            this.form.images.splice(index, 1);
         },
         imageUploaded(file, index) {
             this.form.images[index] = file;
@@ -152,7 +152,7 @@ export default {
             if (this.startingMarker.hasOwnProperty('id')) {
                 this.form.post('/sites/' + this.startingMarker.id, {
                     'Content-Type': 'multipart/form-data',
-                    onSuccess() {
+                    onSuccess: () => {
                         this.$emit('updated');
 
                     },

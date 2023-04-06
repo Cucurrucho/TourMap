@@ -14,7 +14,7 @@
         >
             <GMapMarker
                 :key="-1"
-                :position="center"
+                :position="user"
                 :icon="'https://developers.google.com/maps/documentation/javascript/examples/full/images/info-i_maps.png'"
             />
             <GMapMarker @click="toggleModal(marker.id)" :key="index"
@@ -35,6 +35,7 @@ export default {
     mounted() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(this.gotLocation);
+            const watcher = navigator.geolocation.watchPosition(this.setUser);
         } else {
             alert('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
         }
@@ -55,7 +56,8 @@ export default {
             hasButton: false,
             loadMarkers: true,
             marker: 0,
-            openModal: false
+            openModal: false,
+            user: {}
         }
     },
     methods: {
@@ -97,8 +99,10 @@ export default {
         toggleModal(marker){
             this.marker = marker;
             this.openModal = true;
-
-
+        },
+        setUser(position){
+            this.user.lat = position.coords.latitude;
+            this.user.lng = position.coords.longitude;
         }
     },
     watch: {
