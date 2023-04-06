@@ -25,8 +25,8 @@ class CreateRequest extends FormRequest {
     public function rules(): array {
         return [
             'type' => 'required|string',
-            'lat' => 'required|double',
-            'lng' => 'required|double',
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
             'name' => 'required|string'
         ];
     }

@@ -26,14 +26,16 @@ class EditRequest extends FormRequest {
      */
     public function rules(): array {
         return [
-            'type' => 'required',
-            'lat' => 'required',
-            'lng' => 'required'
+            'type' => 'required|string',
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
+            'name' => 'required|string'
         ];
     }
 
     public function commit() {
         $this->marker->type = $this->type;
+        $this->marker->name = $this->name;
         $this->marker->save();
         $textsToDelete = $this->marker->texts;
         foreach ($this->texts as $text){
@@ -42,7 +44,6 @@ class EditRequest extends FormRequest {
                     return $markerText->id == $text['id'];
                 });
                 $markerText = MarkerText::find($text['id']);
-                $markerText->provider = $text['provider'];
                 $markerText->text = $text['text'];
                 $markerText->save();
             } else {

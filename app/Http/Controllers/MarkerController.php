@@ -54,11 +54,13 @@ class MarkerController extends Controller {
 
     public function displayMarker(Marker $marker) {
         $photos = $marker->photos()->select('url')->get();
-        $texts = $marker->texts()->select('provider', 'text')->get();
+        $texts = $marker->texts()->select('text')->get();
         return back()->with('message', [
                 'type' => $marker->type,
                 'photos' => $photos,
-                'texts' => $texts
+                'texts' => $texts,
+                'name' => $marker->name,
+                'creator' => $marker->user->name
             ]
         );
     }
