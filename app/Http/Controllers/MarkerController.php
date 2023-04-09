@@ -45,7 +45,6 @@ class MarkerController extends Controller {
     }
 
     public function displayMarker(Marker $marker) {
-        dd('here');
         $photos = $marker->photos()->select('url')->get();
         $texts = $marker->texts()->select('text')->get();
         return back()->with('message', [
