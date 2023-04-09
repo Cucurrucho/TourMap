@@ -43,6 +43,7 @@ export default {
     mounted() {
         router.post('/visitor/' + this.markerId, {}, {
             onSuccess: () => {
+                console.log('here');
                 this.type = this.$page.props.flash.message.type;
                 this.photos = this.$page.props.flash.message.photos;
                 this.texts = this.$page.props.flash.message.texts;

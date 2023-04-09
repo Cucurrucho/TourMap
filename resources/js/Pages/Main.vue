@@ -4,7 +4,7 @@ import GuestLayout from "@/Layouts/GuestLayout.vue";
 import VisitorMap from "@/Components/Map/VisitorMap.vue";
 defineProps({
     markers: {
-        type: Array,
+        type: Array
     }
 });
 </script>

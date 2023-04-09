@@ -18,7 +18,7 @@
                 :icon="'https://developers.google.com/maps/documentation/javascript/examples/full/images/info-i_maps.png'"
             />
             <GMapMarker @click="toggleModal(marker.id)" :key="index"
-                        v-for="(marker, index) in $page.props.markers" :position="{lat: marker.lat, lng: marker.lng}">
+                        v-for="(marker, index) in markers" :position="{lat: marker.lat, lng: marker.lng}">
             </GMapMarker>
         </GMapMap>
     </div>
@@ -57,7 +57,8 @@ export default {
             loadMarkers: true,
             marker: 0,
             openModal: false,
-            user: {}
+            user: {},
+            markers: []
         }
     },
     methods: {
@@ -96,18 +97,27 @@ export default {
             });
             map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlUI); // eslint-disable-line no-undef
         },
-        toggleModal(marker){
+        toggleModal(marker) {
             this.marker = marker;
             this.openModal = true;
+            this.loadMarkers = true;
+            this.changeBounds();
         },
-        setUser(position){
+        setUser(position) {
             this.user.lat = position.coords.latitude;
             this.user.lng = position.coords.longitude;
         }
     },
     watch: {
         bounds: function () {
-            router.get('/', this.bounds, {preserveState: true})
+            router.post('/visitor/markers', {
+                bounds: this.bounds,
+                oldMarkers: this.markers
+            }, {
+                onSuccess: () => {
+                    this.markers = [...this.markers, ...this.$page.props.flash.message.newMarkers]
+                }
+            })
         }
     }
 }
