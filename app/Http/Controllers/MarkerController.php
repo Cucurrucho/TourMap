@@ -39,16 +39,8 @@ class MarkerController extends Controller {
 
 
     public function visitor(Request $request) {
-        if ($request->has('southwest') && $request->has('northeast')) {
-            $southwest = $request->southwest;
-            $northeast = $request->northeast;
-            $markers = Marker::whereBetween('lat', [$southwest['lat'], $northeast['lat']])
-                ->whereBetween('lng', [$southwest['lng'], $northeast['lng']])->select('lat', 'lng', 'id')->get();
-        } else {
-            $markers = [];
-        }
         return Inertia::render('Main', [
-            'markers' => $markers,
+            'markers' => []
         ]);
     }
 
@@ -64,4 +56,23 @@ class MarkerController extends Controller {
             ]
         );
     }
+
+    public function getMarkers(Request $request) {
+        $bounds = $request->bounds;
+        $southwest = $bounds['southwest'];
+        $northeast = $bounds['northeast'];
+        $newMarkers = Marker::whereBetween('lat', [$southwest['lat'], $northeast['lat']])
+            ->whereBetween('lng', [$southwest['lng'], $northeast['lng']])->select('lat', 'lng', 'id')->get();
+        if (!empty($request->oldMarkers)) {
+            $oldMarkers = collect($request->oldMarkers)->pluck('id')->toArray();
+            $newMarkers->filter(function ($marker) use ($oldMarkers){
+                return !in_array($marker->id, $oldMarkers);
+            });
+        }
+        return back()->with('message', [
+            'newMarkers' => $newMarkers
+        ]);
+    }
 }
+
+

@@ -13,12 +13,13 @@
                  @tilesloaded="changeBounds"
         >
             <GMapMarker
+                @position_changed="test"
                 :key="-1"
                 :position="user"
                 :icon="'https://developers.google.com/maps/documentation/javascript/examples/full/images/info-i_maps.png'"
             />
-            <GMapMarker @click="toggleModal(marker.id)" :key="index"
-                        v-for="(marker, index) in $page.props.markers" :position="{lat: marker.lat, lng: marker.lng}">
+            <GMapMarker :clickable="true" @click="toggleModal(marker.id)" :key="index"
+                        v-for="(marker, index) in markers" :position="{lat: marker.lat, lng: marker.lng}">
             </GMapMarker>
         </GMapMap>
     </div>
@@ -35,7 +36,9 @@ export default {
     mounted() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(this.gotLocation);
-            const watcher = navigator.geolocation.watchPosition(this.setUser);
+            const watcher = navigator.geolocation.watchPosition(this.setUser, this.handleError, {
+                enableHighAccuracy: true
+            });
         } else {
             alert('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
         }
@@ -57,7 +60,8 @@ export default {
             loadMarkers: true,
             marker: 0,
             openModal: false,
-            user: {}
+            user: {},
+            markers: []
         }
     },
     methods: {
@@ -96,18 +100,40 @@ export default {
             });
             map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlUI); // eslint-disable-line no-undef
         },
-        toggleModal(marker){
+        toggleModal(marker) {
             this.marker = marker;
             this.openModal = true;
         },
-        setUser(position){
-            this.user.lat = position.coords.latitude;
-            this.user.lng = position.coords.longitude;
+        setUser(position) {
+            if (this.user.lat !== position.coords.latitude) {
+                this.user.lat = position.coords.latitude;
+                this.user.lng = position.coords.longitude;
+                this.userMoved();
+            }
+        },
+        handleError(err) {
+            console.log(err);
+        },
+        userMoved() {
+            this.$refs.myMapRef.$mapPromise.then(async map => {
+                let bounds = map.getBounds();
+                this.bounds = {
+                    southwest: {lat: bounds.getSouthWest().lat(), lng: bounds.getSouthWest().lng()},
+                    northeast: {lat: bounds.getNorthEast().lat(), lng: bounds.getNorthEast().lng()}
+                };
+            });
         }
     },
     watch: {
         bounds: function () {
-            router.get('/', this.bounds, {preserveState: true})
+            router.post('/visitor/markers', {
+                bounds: this.bounds,
+                oldMarkers: this.markers
+            }, {
+                onSuccess: () => {
+                    this.markers = [...this.markers, ...this.$page.props.flash.message.newMarkers]
+                }
+            })
         }
     }
 }

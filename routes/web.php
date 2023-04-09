@@ -17,6 +17,7 @@ use Inertia\Inertia;
 |
 */
 Route::get('/', [MarkerController::class, 'visitor'])->name('homepage');
+Route::post('/visitor/markers', [MarkerController::class, 'getMarkers']);
 Route::post('/visitor/{marker}', [MarkerController::class, 'displayMarker']);
 
 
