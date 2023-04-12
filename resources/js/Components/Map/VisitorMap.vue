@@ -109,7 +109,6 @@ export default {
         },
         setUser(position) {
             if (this.user.lat !== position.coords.latitude) {
-                alert('change is: ' + (this.user.lat - position.coords.latitude) )
                 this.moveUser(position);
             }
 
@@ -140,6 +139,7 @@ export default {
                     this.user.lng = deltaLng + this.user.lng;
                 }, 10)
             }
+            this.userMoved();
         }
     },
     watch: {
