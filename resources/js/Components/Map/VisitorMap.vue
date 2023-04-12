@@ -151,7 +151,8 @@ export default {
             }, {
                 onSuccess: () => {
                     this.markers = [...this.markers, ...this.$page.props.flash.message.newMarkers]
-                }
+                },
+                preserveState: true
             })
         }
     },
