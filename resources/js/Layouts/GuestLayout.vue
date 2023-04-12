@@ -4,7 +4,7 @@ import {Link} from '@inertiajs/vue3';
 
 <template>
     <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-        <div class="sm:fixed sm:top-0 sm:right-0 lg:p-4 p-6  text-right">
+        <div class="sm:fixed sm:top-0 sm:right-0 lg:p-4  text-right">
             <div v-if="$page.props.auth.user"
             >
                 <Link

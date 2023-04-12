@@ -117,6 +117,7 @@ export default {
             console.log(err);
         },
         userMoved() {
+            alert('userMoved')
             this.$refs.myMapRef.$mapPromise.then(async map => {
                 let bounds = map.getBounds();
                 this.bounds = {
@@ -125,10 +126,8 @@ export default {
                 };
             });
         },
-        transition() {
-
-        },
         moveUser(position) {
+            alert('moving');
             let numDeltas = 100;
             let i = 0;
             let deltaLat = (position.coords.latitude - this.user.lat) / numDeltas;
