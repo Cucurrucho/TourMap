@@ -5,7 +5,7 @@
         </Modal>
         <GMapMap v-if="located"
                  :center="center"
-                 :zoom="18"
+                 :zoom="17"
                  map-type-id="terrain"
                  style="width: 100vw; height: 900px"
                  :options="options"
@@ -13,9 +13,10 @@
                  @tilesloaded="changeBounds"
         >
             <GMapMarker
-                @position_changed="test"
+                ref="userMarker"
                 :key="-1"
                 :position="user"
+                animation="google.maps.Animation.DROP"
                 :icon="'https://developers.google.com/maps/documentation/javascript/examples/full/images/info-i_maps.png'"
             />
             <GMapMarker :clickable="true" @click="toggleModal(marker.id)" :key="index"
@@ -36,7 +37,7 @@ export default {
     mounted() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(this.gotLocation);
-            const watcher = navigator.geolocation.watchPosition(this.setUser, this.handleError, {
+            this.watcherId = navigator.geolocation.watchPosition(this.setUser, this.handleError, {
                 enableHighAccuracy: true
             });
         } else {
@@ -61,13 +62,15 @@ export default {
             marker: 0,
             openModal: false,
             user: {},
-            markers: []
+            markers: [],
+            watcherId: null
         }
     },
     methods: {
         gotLocation(position) {
             this.center.lat = position.coords.latitude;
             this.center.lng = position.coords.longitude;
+            this.user = this.center;
             this.located = true;
         },
         changeBounds() {
@@ -106,10 +109,9 @@ export default {
         },
         setUser(position) {
             if (this.user.lat !== position.coords.latitude) {
-                this.user.lat = position.coords.latitude;
-                this.user.lng = position.coords.longitude;
-                this.userMoved();
+                this.moveUser(position);
             }
+
         },
         handleError(err) {
             console.log(err);
@@ -122,6 +124,25 @@ export default {
                     northeast: {lat: bounds.getNorthEast().lat(), lng: bounds.getNorthEast().lng()}
                 };
             });
+        },
+        transition() {
+
+        },
+        moveUser(position) {
+            let numDeltas = 100;
+            let i = 0;
+            let deltaLat = (position.coords.latitude - this.user.lat) / numDeltas;
+            let deltaLng = (position.coords.longitude - this.user.lng) / numDeltas;
+            this.user.lat = deltaLat + this.user.lat;
+            this.user.lng = deltaLng + this.user.lng;
+            while (i !== numDeltas) {
+                i++;
+                setTimeout( () => {
+                    this.user.lat = deltaLat + this.user.lat;
+                    this.user.lng = deltaLng + this.user.lng;
+                }, 10)
+            }
+            this.userMoved();
         }
     },
     watch: {
@@ -135,6 +156,9 @@ export default {
                 }
             })
         }
+    },
+    unmounted() {
+        navigator.geolocation.clearWatch(this.watcherId)
     }
 }
 </script>
