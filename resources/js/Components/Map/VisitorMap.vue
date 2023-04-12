@@ -140,7 +140,6 @@ export default {
                     this.user.lng = deltaLng + this.user.lng;
                 }, 10)
             }
-            this.userMoved();
         }
     },
     watch: {
@@ -151,7 +150,8 @@ export default {
             }, {
                 onSuccess: () => {
                     this.markers = [...this.markers, ...this.$page.props.flash.message.newMarkers]
-                }
+                },
+                preserveState: true
             })
         }
     },
