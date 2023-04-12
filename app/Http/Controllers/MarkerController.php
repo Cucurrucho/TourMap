@@ -65,7 +65,7 @@ class MarkerController extends Controller {
             ->whereBetween('lng', [$southwest['lng'], $northeast['lng']])->select('lat', 'lng', 'id')->get();
         if (!empty($request->oldMarkers)) {
             $oldMarkers = collect($request->oldMarkers)->pluck('id')->toArray();
-            $newMarkers->filter(function ($marker) use ($oldMarkers){
+            $newMarkers = $newMarkers->filter(function ($marker) use ($oldMarkers){
                 return !in_array($marker->id, $oldMarkers);
             });
         }
