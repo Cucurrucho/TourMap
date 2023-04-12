@@ -114,7 +114,6 @@ export default {
 
         },
         handleError(err) {
-            console.log(err);
         },
         userMoved() {
             this.$refs.myMapRef.$mapPromise.then(async map => {
