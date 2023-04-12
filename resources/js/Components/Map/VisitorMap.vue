@@ -122,6 +122,7 @@ export default {
                     southwest: {lat: bounds.getSouthWest().lat(), lng: bounds.getSouthWest().lng()},
                     northeast: {lat: bounds.getNorthEast().lat(), lng: bounds.getNorthEast().lng()}
                 };
+                map.panTo(this.user);
             });
         },
         moveUser(position) {
