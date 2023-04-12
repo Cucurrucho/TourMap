@@ -140,7 +140,6 @@ export default {
                     this.user.lng = deltaLng + this.user.lng;
                 }, 10)
             }
-            this.userMoved();
         }
     },
     watch: {
