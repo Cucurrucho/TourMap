@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div >
         <Modal :show="openModal" @close="this.openModal = false;">
             <Display :marker-id="marker"></Display>
         </Modal>
