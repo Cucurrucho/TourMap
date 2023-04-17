@@ -4,7 +4,7 @@
             <Display :marker-id="marker"></Display>
         </Modal>
         <GMapMap v-if="located"
-                 :center="center"
+                 :center="user"
                  :zoom="17"
                  map-type-id="terrain"
                  style="width: 100vw; height: 900px"
@@ -68,9 +68,9 @@ export default {
     },
     methods: {
         gotLocation(position) {
-            this.center.lat = position.coords.latitude;
-            this.center.lng = position.coords.longitude;
-            this.user = this.center;
+            console.log('here');
+            this.user.lat = position.coords.latitude;
+            this.user.lng = position.coords.longitude;
             this.located = true;
         },
         changeBounds() {
@@ -115,31 +115,9 @@ export default {
         },
         handleError(err) {
         },
-        userMoved() {
-            this.$refs.myMapRef.$mapPromise.then(async map => {
-                let bounds = map.getBounds();
-                this.bounds = {
-                    southwest: {lat: bounds.getSouthWest().lat(), lng: bounds.getSouthWest().lng()},
-                    northeast: {lat: bounds.getNorthEast().lat(), lng: bounds.getNorthEast().lng()}
-                };
-                map.panTo(this.user);
-            });
-        },
         moveUser(position) {
-            let numDeltas = 100;
-            let i = 0;
-            let deltaLat = (position.coords.latitude - this.user.lat) / numDeltas;
-            let deltaLng = (position.coords.longitude - this.user.lng) / numDeltas;
-            this.user.lat = deltaLat + this.user.lat;
-            this.user.lng = deltaLng + this.user.lng;
-            while (i !== numDeltas) {
-                i++;
-                setTimeout( () => {
-                    this.user.lat = deltaLat + this.user.lat;
-                    this.user.lng = deltaLng + this.user.lng;
-                }, 10)
-            }
-            this.userMoved();
+            this.user.lat = position.coords.latitude;
+            this.user.lng = position.coords.longitude;
         }
     },
     watch: {
