@@ -35,13 +35,11 @@ export default {
     name: "VisitorMap",
     components: {Display, Modal},
     mounted() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(this.gotLocation);
-            this.watcherId = navigator.geolocation.watchPosition(this.setUser, this.handleError, {
-                enableHighAccuracy: true
-            });
-        } else {
-            alert('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
+        if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(this.gotLocation, this.handleError);
+                this.watcherId = navigator.geolocation.watchPosition(this.setUser, this.handleError, {
+                    enableHighAccuracy: true
+                });
         }
     },
     data() {
@@ -68,7 +66,6 @@ export default {
     },
     methods: {
         gotLocation(position) {
-            console.log('here');
             this.user.lat = position.coords.latitude;
             this.user.lng = position.coords.longitude;
             this.located = true;
@@ -114,6 +111,7 @@ export default {
 
         },
         handleError(err) {
+            console.log(err);
         },
         moveUser(position) {
             this.user.lat = position.coords.latitude;
