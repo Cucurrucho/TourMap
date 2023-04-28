@@ -6,6 +6,7 @@ use App\Models\MarkerResources\MarkerPhoto;
 use App\Models\MarkerResources\MarkerText;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 
@@ -16,7 +17,7 @@ class EditRequest extends FormRequest {
      */
     public function authorize(): bool {
         $this->marker = $this->route('marker');
-        return true;
+        return Auth::check();
     }
 
     /**
@@ -79,7 +80,6 @@ class EditRequest extends FormRequest {
             }
         }
         $photosToDelete->each(function ($photo){
-            Storage::delete(str_replace('storage','public',$photo->url));
             $photo->delete();
         });
         return [

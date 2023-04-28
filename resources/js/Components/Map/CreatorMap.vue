@@ -1,28 +1,31 @@
 <template>
     <div>
         <Modal :show="openModal" @close="toggleModal">
-            <MarkerForm :lat="formLat" :lng="formLng" @updated="newMarker" :starting-marker="formMarker"></MarkerForm>
+            <MarkerForm :lat="formLat" :lng="formLng" @updated="toggleModal" @deleted="toggleModal"
+                        :starting-marker="formMarker"></MarkerForm>
         </Modal>
-        <GMapMap
-            :center="center"
-            :zoom="18"
-            map-type-id="terrain"
-            style="width: 100vw; height: 900px"
-            :options="options"
-            ref="myMapRef"
-            @click="addMarker"
-            @tilesloaded.once="changeBounds"
+        <GMapMap v-if="located"
+                 :center="center"
+                 :zoom="18"
+                 map-type-id="terrain"
+                 style="width: 100vw; height: 900px"
+                 :options="options"
+                 ref="myMapRef"
+                 @click="addMarker"
         >
             <GMapMarker
                 :key="-1"
                 :position="center"
                 :icon="'https://developers.google.com/maps/documentation/javascript/examples/full/images/info-i_maps.png'"
             />
-            <GMapMarker
-                @click="(e) => showMarker(e,marker)" :key="index"
-                v-for="(marker, index) in $page.props.markers" :position="{lat: marker.lat, lng: marker.lng}">
+            <GMapMarker :draggable="true" @dragend="(e) => dragged(e, marker.id)"
+                        @click="(e) => showMarker(e,marker)" :key="index"
+                        v-for="(marker, index) in $page.props.markers" :position="{lat: marker.lat, lng: marker.lng}">
             </GMapMarker>
         </GMapMap>
+        <div v-if="locationDenied" class="text-red-800 text-lg">
+            This page requires location permission: please give it by clicking on the lock in the browser address bar
+        </div>
     </div>
 </template>
 <script>
@@ -53,21 +56,31 @@ export default {
             formLat: 0,
             formLng: 0,
             formMarker: {photos: [{url: 'images/upload.png'}], texts: [{provider: '', text: ''}]},
-            bounds: []
-
+            bounds: [],
+            located: false,
+            locationDenied: false,
+            markersDragged: [],
+            hasButton: false
         }
     },
     mounted() {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(this.gotLocation);
-        } else {
-            alert('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
+            navigator.geolocation.getCurrentPosition(this.gotLocation, this.handleError);
         }
+        navigator.permissions
+            .query({name: "geolocation"})
+            .then((permissionStatus) => {
+                permissionStatus.onchange = () => {
+                    navigator.geolocation.getCurrentPosition(this.gotLocation);
+                };
+            });
     },
     methods: {
         gotLocation(position) {
             this.center.lat = position.coords.latitude;
             this.center.lng = position.coords.longitude;
+            this.located = true;
+            this.locationDenied = false;
         },
         addMarker(position) {
             this.formLng = position.latLng.lng();
@@ -76,16 +89,6 @@ export default {
         },
         toggleModal() {
             this.openModal = !this.openModal;
-        },
-
-        changeBounds() {
-            this.$refs.myMapRef.$mapPromise.then(async map => {
-                let bounds = map.getBounds();
-                this.bounds = {
-                    southwest: {lat: bounds.getSouthWest().lat(), lng: bounds.getSouthWest().lng()},
-                    northeast: {lat: bounds.getNorthEast().lat(), lng: bounds.getNorthEast().lng()}
-                };
-            })
         },
         showMarker(event, marker) {
             if (this.$page.props.auth.user) {
@@ -99,14 +102,34 @@ export default {
                 console.log('guest', marker)
             }
         },
-        newMarker(){
-            this.changeBounds();
-            this.toggleModal();
-        }
-    },
-    watch: {
-        bounds: function (){
-            router.get('/sites', this.bounds, {preserveState: true})
+        handleError(error) {
+            if (error.code === error.PERMISSION_DENIED)
+                this.locationDenied = true;
+        },
+        dragged(event, marker) {
+            this.markersDragged[marker] = event;
+            if (!this.hasButton) {
+                this.$refs.myMapRef.$mapPromise.then(async map => {
+                    if (!this.hasButton) {
+                        this.addButton(map);
+                        this.hasButton = true;
+                    }
+                });
+            }
+        },
+        addButton(map) {
+            const controlUI = document.createElement("button");
+            controlUI.classList.add("bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-6", "rounded", 'text-base');
+            controlUI.textContent = 'Save new marker position';
+            controlUI.type = 'button';
+            const controlText = document.createElement("div");
+            controlUI.appendChild(controlText);
+            controlUI.addEventListener("click", () => {
+                this.hasButton = false;
+                controlUI.remove();
+                router.post('sites/updateMarkerPositions', {markers: this.markersDragged});
+            });
+            map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlUI); // eslint-disable-line no-undef
         }
     }
 }

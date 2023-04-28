@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Marker\CreateRequest;
+use App\Http\Requests\Marker\DestroyRequest;
 use App\Http\Requests\Marker\EditRequest;
+use App\Http\Requests\Marker\UpdatePositionRequest;
 use App\Models\Marker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -18,14 +20,7 @@ class MarkerController extends Controller {
     }
 
     public function get(Request $request) {
-        if ($request->has('southwest') && $request->has('northeast')) {
-            $southwest = $request->southwest;
-            $northeast = $request->northeast;
-            $markers = Marker::whereBetween('lat', [$southwest['lat'], $northeast['lat']])
-                ->whereBetween('lng', [$southwest['lng'], $northeast['lng']])->with('texts', 'photos')->where('user_id', $request->user()->id)->get();
-        } else {
-            $markers = [];
-        }
+        $markers = Marker::with('texts', 'photos')->where('user_id', $request->user()->id)->get();
         return Inertia::render('Sites/Map', [
             'markers' => $markers,
         ]);
@@ -65,13 +60,24 @@ class MarkerController extends Controller {
             ->whereBetween('lng', [$southwest['lng'], $northeast['lng']])->select('lat', 'lng', 'id')->get();
         if (!empty($request->oldMarkers)) {
             $oldMarkers = collect($request->oldMarkers)->pluck('id')->toArray();
-            $newMarkers = $newMarkers->filter(function ($marker) use ($oldMarkers){
+            $newMarkers = $newMarkers->filter(function ($marker) use ($oldMarkers) {
                 return !in_array($marker->id, $oldMarkers);
             });
         }
         return back()->with('message', [
             'newMarkers' => $newMarkers
         ]);
+    }
+
+
+    public function updateMarkerPositions(UpdatePositionRequest $request) {
+        $request->commit();
+        return back();
+    }
+
+    public function destroy(DestroyRequest $request, Marker $marker) {
+        $request->commit();
+        return back();
     }
 }
 

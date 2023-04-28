@@ -6,6 +6,7 @@ use App\Models\Marker;
 use App\Models\MarkerResources\MarkerPhoto;
 use App\Models\MarkerResources\MarkerText;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 
@@ -14,7 +15,7 @@ class CreateRequest extends FormRequest {
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool {
-        return true;
+        return Auth::check();
     }
 
     /**
