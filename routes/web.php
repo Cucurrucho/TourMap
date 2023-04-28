@@ -26,12 +26,12 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 
-
-
-Route::middleware('auth')->prefix('/sites')->group(function (){
+Route::middleware('auth')->prefix('/sites')->group(function () {
     Route::get('/', [MarkerController::class, 'get'])->name('sites');
     Route::post('/', [MarkerController::class, 'create']);
-    Route::post('/{marker}', [MarkerController::class, 'edit']);
+    Route::post('/edit/{marker}', [MarkerController::class, 'edit']);
+    Route::post('/updateMarkerPositions', [MarkerController::class, 'updateMarkerPositions']);
+    Route::delete('delete/{marker}', [MarkerController::class, 'destroy']);
 });
 
 Route::middleware('auth')->group(function () {
@@ -40,4 +40,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

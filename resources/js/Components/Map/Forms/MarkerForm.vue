@@ -87,6 +87,11 @@
                     >
                         Submit
                     </button>
+                    <button v-if="startingMarker.hasOwnProperty('id') " type="button" @click="deleteMarker"
+                            class="inline-flex ml-1  items-center px-4 py-2 bg-red-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                    >
+                        Delete
+                    </button>
                 </div>
             </div>
         </form>
@@ -95,7 +100,7 @@
 
 <script>
 import ImageUpload from "@/Components/Map/Forms/ImageUpload.vue";
-import {useForm} from '@inertiajs/vue3'
+import {router, useForm} from '@inertiajs/vue3'
 import InputError from "@/Components/InputError.vue";
 
 export default {
@@ -129,6 +134,16 @@ export default {
         }
     },
     methods: {
+        deleteMarker() {
+            router.delete('sites/delete/' + this.startingMarker.id, {
+                onSuccess: () => {
+                    this.$emit('deleted')
+                },
+                onError: () => {
+
+                }
+            })
+        },
         addText() {
             this.form.texts.push({provider: '', text: ''})
         },
@@ -150,7 +165,7 @@ export default {
         },
         submit() {
             if (this.startingMarker.hasOwnProperty('id')) {
-                this.form.post('/sites/' + this.startingMarker.id, {
+                this.form.post('/sites/edit/' + this.startingMarker.id, {
                     'Content-Type': 'multipart/form-data',
                     onSuccess: () => {
                         this.$emit('updated');
