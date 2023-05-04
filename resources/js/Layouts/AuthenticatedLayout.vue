@@ -12,8 +12,8 @@ const showingNavigationDropdown = ref(false);
 
 <template>
     <div>
-        <div class="min-h-screen bg-gray-100">
-            <nav class="bg-white border-b border-gray-100">
+        <div class="h-screen overflow-hidden bg-gray-100">
+            <nav v-if="$page.props.auth.user" class="bg-white border-b border-gray-100">
                 <!-- Primary Navigation Menu -->
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex justify-between h-16">
@@ -34,7 +34,10 @@ const showingNavigationDropdown = ref(false);
                                     Dashboard
                                 </NavLink>
                                 <NavLink :href="route('sites')" :active="route().current('sites')">
-                                    Main
+                                    My Map
+                                </NavLink>
+                                <NavLink :href="route('homepage')" :active="route().current('homepage')">
+                                    Tour Map
                                 </NavLink>
                             </div>
                         </div>
@@ -120,7 +123,10 @@ const showingNavigationDropdown = ref(false);
                             Dashboard
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('sites')" :active="route().current('sites')">
-                            Main
+                            My Map
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('homepage')" :active="route().current('homepage')">
+                            Tour Map
                         </ResponsiveNavLink>
                     </div>
 
@@ -141,8 +147,21 @@ const showingNavigationDropdown = ref(false);
                         </div>
                     </div>
                 </div>
-            </nav>
-
+            </nav >
+            <div v-else class="sm:top-0 sm:right-0 p-4  text-right">
+                <Link
+                    :href="route('login')"
+                    class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
+                >Log in
+                </Link
+                >
+                <Link
+                    :href="route('register')"
+                    class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
+                >Register
+                </Link
+                >
+            </div>
             <!-- Page Heading -->
             <header class="bg-white shadow" v-if="$slots.header">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
