@@ -87,7 +87,7 @@ export default {
         },
         addButton(map) {
             const controlUI = document.createElement("button");
-            controlUI.classList.add("bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-6", "rounded", 'text-base');
+            controlUI.classList.add("bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-6", "rounded", 'text-base', 'mt-5');
             controlUI.textContent = 'Search This Area';
             controlUI.type = 'button';
             const controlText = document.createElement("div");
