@@ -23,6 +23,9 @@
                         v-for="(marker, index) in markers" :position="{lat: marker.lat, lng: marker.lng}">
             </GMapMarker>
         </GMapMap>
+        <div v-if="locationDenied" class="text-red-800 text-lg">
+            This page requires location permission: please give it by clicking on the lock in the browser address bar
+        </div>
     </div>
 </template>
 
@@ -41,6 +44,13 @@ export default {
                     enableHighAccuracy: true
                 });
         }
+        navigator.permissions
+            .query({name: "geolocation"})
+            .then((permissionStatus) => {
+                permissionStatus.onchange = () => {
+                    navigator.geolocation.getCurrentPosition(this.gotLocation);
+                };
+            });
     },
     data() {
         return {
@@ -61,7 +71,8 @@ export default {
             openModal: false,
             user: {},
             markers: [],
-            watcherId: null
+            watcherId: null,
+            locationDenied: false
         }
     },
     methods: {
@@ -69,6 +80,7 @@ export default {
             this.user.lat = position.coords.latitude;
             this.user.lng = position.coords.longitude;
             this.located = true;
+            this.locationDenied = false;
         },
         changeBounds() {
             this.$refs.myMapRef.$mapPromise.then(async map => {
@@ -110,8 +122,9 @@ export default {
             }
 
         },
-        handleError(err) {
-            console.log(err);
+        handleError(error) {
+            if (error.code === error.PERMISSION_DENIED)
+                this.locationDenied = true;
         },
         moveUser(position) {
             this.user.lat = position.coords.latitude;
