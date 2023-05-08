@@ -98,8 +98,6 @@ export default {
                 if (!this.openModal) {
                     this.toggleModal();
                 }
-            } else {
-                console.log('guest', marker)
             }
         },
         handleError(error) {

@@ -12,7 +12,7 @@ const showingNavigationDropdown = ref(false);
 
 <template>
     <div>
-        <div class="h-screen overflow-hidden bg-gray-100">
+        <div class="h-screen">
             <nav v-if="$page.props.auth.user" class="bg-white border-b border-gray-100">
                 <!-- Primary Navigation Menu -->
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -148,7 +148,7 @@ const showingNavigationDropdown = ref(false);
                     </div>
                 </div>
             </nav >
-            <div v-else class="sm:top-0 sm:right-0 p-4  text-right">
+            <div v-else class="sm:top-0 sm:right-0 p-4  text-right bg-white border-b border-gray-100">
                 <Link
                     :href="route('login')"
                     class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
