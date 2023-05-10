@@ -21,7 +21,7 @@ class UpdatePositionRequest extends FormRequest {
      */
     public function rules(): array {
         return [
-            'markers' => 'required|array'
+            'markers' => 'array'
         ];
     }
 

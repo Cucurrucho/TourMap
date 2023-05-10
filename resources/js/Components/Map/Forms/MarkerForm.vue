@@ -169,6 +169,9 @@ export default {
                     'Content-Type': 'multipart/form-data',
                     onSuccess: () => {
                         this.$emit('updated');
+                        this.$toast.success('Marker Edited Successfully', {
+                            position: "top-right"
+                        })
 
                     },
                     onError() {
@@ -181,6 +184,9 @@ export default {
                     'Content-Type': 'multipart/form-data',
                     onSuccess: () => {
                         this.$emit('updated');
+                        this.$toast.success('Marker Created Successfully', {
+                            position: "top-right"
+                        })
                     },
                     onError() {
 

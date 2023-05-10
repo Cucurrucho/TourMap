@@ -20,6 +20,7 @@
     "dependencies": {
         "@fawmi/vue-google-maps": "^0.9.79",
         "@vitejs/plugin-vue": "^4.1.0",
-        "vue": "^3.2.47"
+        "vue": "^3.2.47",
+        "vue-toast-notification": "3.0"
     }
 }
