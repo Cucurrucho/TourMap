@@ -3,16 +3,16 @@
         <Modal :show="openModal" @close="this.openModal = false;">
             <Display :marker-id="marker"></Display>
         </Modal>
-        <GMapMap v-if="located"
+        <GMapMap
                  :center="user"
                  :zoom="17"
                  map-type-id="terrain"
-                 style="width: 100vw; height: 900px"
+                 style="position: absolute; height: 100%; width: 100vw; top: 0; left: 0; z-index: 1"
                  :options="options"
                  ref="myMapRef"
                  @tilesloaded="changeBounds"
         >
-            <GMapMarker
+            <GMapMarker v-if="located"
                 ref="userMarker"
                 :key="-1"
                 :position="user"
@@ -69,7 +69,7 @@ export default {
             loadMarkers: true,
             marker: 0,
             openModal: false,
-            user: {},
+            user: {lat: 32.801987378218094, lng: 35.00797829055788},
             markers: [],
             watcherId: null,
             locationDenied: false
@@ -99,7 +99,7 @@ export default {
         },
         addButton(map) {
             const controlUI = document.createElement("button");
-            controlUI.classList.add("bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-6", "rounded", 'text-base', 'mt-5');
+            controlUI.classList.add("bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "p-2", "rounded", 'text-base', 'mb-10');
             controlUI.textContent = 'Search This Area';
             controlUI.type = 'button';
             const controlText = document.createElement("div");
@@ -110,7 +110,7 @@ export default {
                 this.hasButton = false;
                 controlUI.remove();
             });
-            map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlUI); // eslint-disable-line no-undef
+            map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(controlUI); // eslint-disable-line no-undef
         },
         toggleModal(marker) {
             this.marker = marker;

@@ -4,21 +4,22 @@
             <MarkerForm :lat="formLat" :lng="formLng" @updated="toggleModal" @deleted="toggleModal"
                         :starting-marker="formMarker"></MarkerForm>
         </Modal>
-        <GMapMap v-if="located"
-                 :center="center"
-                 :zoom="18"
-                 map-type-id="terrain"
-                 style="width: 100vw; height: 900px"
-                 :options="options"
-                 ref="myMapRef"
-                 @click="addMarker"
+        <GMapMap
+            :center="center"
+            :zoom="15"
+            map-type-id="terrain"
+            style="position: absolute; height: 100%; width: 100vw; top: 0; left: 0; z-index: 1"
+            :options="options"
+            ref="myMapRef"
+            @click="addMarker"
         >
             <GMapMarker
                 :key="-1"
                 :position="center"
+                v-if="located"
                 :icon="'https://developers.google.com/maps/documentation/javascript/examples/full/images/info-i_maps.png'"
             />
-            <GMapMarker :draggable="true" @dragend="(e) => dragged(e, marker.id)"
+            <GMapMarker :draggable="editMode" @dragend="(e) => dragged(e, marker.id)"
                         @click="(e) => showMarker(e,marker)" :key="index"
                         v-for="(marker, index) in $page.props.markers" :position="{lat: marker.lat, lng: marker.lng}">
             </GMapMarker>
@@ -43,7 +44,7 @@ export default {
     },
     data() {
         return {
-            center: {},
+            center: {lat: 32.801987378218094, lng: 35.00797829055788},
             options: {
                 styles: [
                     {
@@ -60,7 +61,9 @@ export default {
             located: false,
             locationDenied: false,
             markersDragged: [],
-            hasButton: false
+            hasButton: false,
+            editModeButton: {},
+            editMode: false
         }
     },
     mounted() {
@@ -74,6 +77,16 @@ export default {
                     navigator.geolocation.getCurrentPosition(this.gotLocation);
                 };
             });
+        this.$refs.myMapRef.$mapPromise.then(async map => {
+            this.editModeButton = document.createElement("button");
+            this.editModeButton.classList.add("bg-green-500", "hover:bg-green-700", "text-white", "font-bold", "p-2" ,"rounded", 'text-base', 'mb-10');
+            this.editModeButton.textContent = 'Edit Mode';
+            this.editModeButton.type = 'button';
+            this.editModeButton.addEventListener("click", () => {
+                this.editModeClick();
+            });
+            map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.editModeButton); // eslint-disable-line no-undef
+        });
     },
     methods: {
         gotLocation(position) {
@@ -89,9 +102,10 @@ export default {
         },
         toggleModal() {
             this.openModal = !this.openModal;
+            this.formMarker = {photos: [{url: 'images/upload.png'}], texts: [{provider: '', text: ''}]};
         },
         showMarker(event, marker) {
-            if (this.$page.props.auth.user) {
+            if (this.$page.props.auth.user && this.editMode) {
                 this.formMarker = marker;
                 this.formLat = marker.lat;
                 this.formLng = marker.lng;
@@ -106,28 +120,22 @@ export default {
         },
         dragged(event, marker) {
             this.markersDragged[marker] = event;
-            if (!this.hasButton) {
-                this.$refs.myMapRef.$mapPromise.then(async map => {
-                    if (!this.hasButton) {
-                        this.addButton(map);
-                        this.hasButton = true;
+        },
+        editModeClick() {
+            if (!this.editMode) {
+                this.editModeButton.textContent = "Save and exit edit mode";
+                this.editMode = true;
+            } else {
+                router.post('sites/updateMarkerPositions', {markers: this.markersDragged}, {
+                    onSuccess: () => {
+                        this.$toast.success('Markers Edited Successfully', {
+                            position: "top-right"
+                        })
                     }
                 });
+                this.editModeButton.textContent = "Edit Mode";
+                this.editMode = false;
             }
-        },
-        addButton(map) {
-            const controlUI = document.createElement("button");
-            controlUI.classList.add("bg-red-500", "hover:bg-red-700", "text-white", "font-bold", "py-2", "px-6", "rounded", 'text-base', 'mt-5');
-            controlUI.textContent = 'Save new marker position';
-            controlUI.type = 'button';
-            const controlText = document.createElement("div");
-            controlUI.appendChild(controlText);
-            controlUI.addEventListener("click", () => {
-                this.hasButton = false;
-                controlUI.remove();
-                router.post('sites/updateMarkerPositions', {markers: this.markersDragged});
-            });
-            map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlUI); // eslint-disable-line no-undef
         }
     }
 }
