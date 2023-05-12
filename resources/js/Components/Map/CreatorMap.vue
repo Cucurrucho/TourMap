@@ -1,16 +1,20 @@
 <template>
     <div>
         <Modal :show="openModal" @close="toggleModal">
-            <MarkerForm :lat="formLat" :lng="formLng" @updated="toggleModal" @deleted="toggleModal"
+            <MarkerForm :lat="formLat" :lng="formLng" @discard="toggleModal" @updated="toggleModal"
+                        @deleted="toggleModal"
                         :starting-marker="formMarker"></MarkerForm>
         </Modal>
         <GMapMap
+
+            v-if="located"
             :center="center"
             :zoom="15"
             map-type-id="terrain"
             style="position: absolute; height: 100%; width: 100vw; top: 0; left: 0; z-index: 1"
             :options="options"
             ref="myMapRef"
+            @tilesloaded.once="addEditButton"
             @click="addMarker"
         >
             <GMapMarker
@@ -24,8 +28,12 @@
                         v-for="(marker, index) in $page.props.markers" :position="{lat: marker.lat, lng: marker.lng}">
             </GMapMarker>
         </GMapMap>
-        <div v-if="locationDenied" class="text-red-800 text-lg">
-            This page requires location permission: please give it by clicking on the lock in the browser address bar
+        <div class="text-center mt-5" v-if="locationDenied">
+            <div class="text-red-800 text-lg">
+                This page requires location permission, if on phone please activate GPS service, refresh and give
+                permission.
+                If on web browser refresh and give permission
+            </div>
         </div>
     </div>
 </template>
@@ -33,7 +41,6 @@
 import Modal from '@/Components/Modal.vue';
 import MarkerForm from "@/Components/Map/Forms/MarkerForm.vue";
 import {router} from '@inertiajs/vue3'
-
 
 export default {
 
@@ -44,7 +51,7 @@ export default {
     },
     data() {
         return {
-            center: {lat: 32.801987378218094, lng: 35.00797829055788},
+            center: {},
             options: {
                 styles: [
                     {
@@ -63,30 +70,15 @@ export default {
             markersDragged: [],
             hasButton: false,
             editModeButton: {},
-            editMode: false
+            editMode: false,
+
         }
     },
     mounted() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(this.gotLocation, this.handleError);
         }
-        navigator.permissions
-            .query({name: "geolocation"})
-            .then((permissionStatus) => {
-                permissionStatus.onchange = () => {
-                    navigator.geolocation.getCurrentPosition(this.gotLocation);
-                };
-            });
-        this.$refs.myMapRef.$mapPromise.then(async map => {
-            this.editModeButton = document.createElement("button");
-            this.editModeButton.classList.add("bg-green-500", "hover:bg-green-700", "text-white", "font-bold", "p-2" ,"rounded", 'text-base', 'mb-10');
-            this.editModeButton.textContent = 'Edit Mode';
-            this.editModeButton.type = 'button';
-            this.editModeButton.addEventListener("click", () => {
-                this.editModeClick();
-            });
-            map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.editModeButton); // eslint-disable-line no-undef
-        });
+
     },
     methods: {
         gotLocation(position) {
@@ -115,15 +107,16 @@ export default {
             }
         },
         handleError(error) {
-            if (error.code === error.PERMISSION_DENIED)
+            if (error.code === error.PERMISSION_DENIED) {
                 this.locationDenied = true;
+            }
         },
         dragged(event, marker) {
             this.markersDragged[marker] = event;
         },
         editModeClick() {
             if (!this.editMode) {
-                this.editModeButton.textContent = "Save and exit edit mode";
+                this.editModeButton.textContent = "Save";
                 this.editMode = true;
             } else {
                 router.post('sites/updateMarkerPositions', {markers: this.markersDragged}, {
@@ -136,8 +129,37 @@ export default {
                 this.editModeButton.textContent = "Edit Mode";
                 this.editMode = false;
             }
+        },
+        addEditButton(){
+            this.$refs.myMapRef.$mapPromise.then(async map => {
+                this.editModeButton = document.createElement("button");
+
+                this.editModeButton.classList.add("bg-green-500", "hover:bg-green-700", "text-white", "font-bold", "w-32", "rounded", 'text-base', 'mb-10', 'h-auto');
+                this.editModeButton.textContent = 'Edit Mode';
+                this.editModeButton.type = 'button';
+                this.editModeButton.addEventListener("click", () => {
+                    this.editModeClick();
+                });
+                map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.editModeButton); // eslint-disable-line no-undef
+            });
+        }
+    },
+    watch: {
+        myMapRef(){
+            console.log('here');
         }
     }
+    // setup() {
+    //     const myMapRef = ref();
+    //
+    //     watch(myMapRef, googleMap => {
+    //         if (googleMap) {
+    //             googleMap.$mapPromise.then(map => {
+    //                 this.addMyButton(map);
+    //             })
+    //         }
+    //     });
+    // }
 }
 </script>
 

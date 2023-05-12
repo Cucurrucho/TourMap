@@ -1,30 +1,35 @@
 <template>
-    <div >
+    <div>
         <Modal :show="openModal" @close="this.openModal = false;">
             <Display :marker-id="marker"></Display>
         </Modal>
         <GMapMap
-                 :center="user"
-                 :zoom="17"
-                 map-type-id="terrain"
-                 style="position: absolute; height: 100%; width: 100vw; top: 0; left: 0; z-index: 1"
-                 :options="options"
-                 ref="myMapRef"
-                 @tilesloaded="changeBounds"
+            v-if="located"
+            :center="user"
+            :zoom="17"
+            map-type-id="terrain"
+            style="position: absolute; height: 100%; width: 100vw; top: 0; left: 0; z-index: 1"
+            :options="options"
+            ref="myMapRef"
+            @tilesloaded="changeBounds"
         >
             <GMapMarker v-if="located"
-                ref="userMarker"
-                :key="-1"
-                :position="user"
-                animation="google.maps.Animation.DROP"
-                :icon="'https://developers.google.com/maps/documentation/javascript/examples/full/images/info-i_maps.png'"
+                        ref="userMarker"
+                        :key="-1"
+                        :position="user"
+                        animation="google.maps.Animation.DROP"
+                        :icon="'https://developers.google.com/maps/documentation/javascript/examples/full/images/info-i_maps.png'"
             />
             <GMapMarker :clickable="true" @click="toggleModal(marker.id)" :key="index"
                         v-for="(marker, index) in markers" :position="{lat: marker.lat, lng: marker.lng}">
             </GMapMarker>
         </GMapMap>
-        <div v-if="locationDenied" class="text-red-800 text-lg">
-            This page requires location permission: please give it by clicking on the lock in the browser address bar
+        <div class="text-center mt-5" v-if="locationDenied">
+            <div class="text-red-800 text-lg">
+                This page requires location permission, if on phone please activate GPS service, refresh and give
+                permission.
+                If on web browser refresh and give permission
+            </div>
         </div>
     </div>
 </template>
@@ -39,22 +44,14 @@ export default {
     components: {Display, Modal},
     mounted() {
         if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(this.gotLocation, this.handleError);
-                this.watcherId = navigator.geolocation.watchPosition(this.setUser, this.handleError, {
-                    enableHighAccuracy: true
-                });
-        }
-        navigator.permissions
-            .query({name: "geolocation"})
-            .then((permissionStatus) => {
-                permissionStatus.onchange = () => {
-                    navigator.geolocation.getCurrentPosition(this.gotLocation);
-                };
+            navigator.geolocation.getCurrentPosition(this.gotLocation, this.handleError);
+            this.watcherId = navigator.geolocation.watchPosition(this.setUser, this.handleError, {
+                enableHighAccuracy: true
             });
+        }
     },
     data() {
         return {
-            center: {},
             options: {
                 styles: [
                     {
@@ -69,7 +66,7 @@ export default {
             loadMarkers: true,
             marker: 0,
             openModal: false,
-            user: {lat: 32.801987378218094, lng: 35.00797829055788},
+            user: {},
             markers: [],
             watcherId: null,
             locationDenied: false
