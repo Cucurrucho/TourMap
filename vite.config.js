@@ -10,8 +10,10 @@ export default defineConfig({
             refresh: true,
         }),
         VitePWA({
-            registerType: 'autoUpdate',
-            srcDir: "src",
+            strategies: "injectManifest",
+            injectRegister: null,
+            srcDir: "resources/js",
+            filename: "service-worker.js",
             start_url: "/",
             display: "standalone",
             orientation: "portrait",
