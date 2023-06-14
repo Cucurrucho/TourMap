@@ -11,8 +11,15 @@ export default defineConfig({
         }),
         VitePWA({
             registerType: 'autoUpdate',
-            devOptions: {
-                enabled: true
+            srcDir: "src",
+            start_url: "/",
+            display: "standalone",
+            orientation: "portrait",
+            background_color: "#363636",
+            theme_color: "#209CEE",
+            manifest: {
+                name: "Easy Tours",
+                short_name: "Easy Tours"
             }
         }),
         vue({
