@@ -12,9 +12,10 @@ export default defineConfig({
         VitePWA({
             strategies: "injectManifest",
             injectRegister: null,
+            manifestFilename: 'manifest.json',
             srcDir: "resources/js",
             filename: "service-worker.js",
-            start_url: "/",
+            start_url: "../",
             display: "standalone",
             orientation: "portrait",
             background_color: "#363636",
