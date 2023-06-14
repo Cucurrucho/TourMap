@@ -14,7 +14,7 @@
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
-        <link rel="manifest" href="mainfest.json">
+        <link rel="manifest" href="/mainfest.json">
 
     </head>
     <body class="font-sans antialiased">
