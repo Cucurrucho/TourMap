@@ -2,8 +2,10 @@
     "name": "Easy Tours",
     "short_name": "Easy Tours",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "lang": "en",
-    "scope": "/"
+    "orientation": "portrait",
+    "background_color": "#363636",
+    "theme_color": "#209CEE",
+    "icons": []
 }
