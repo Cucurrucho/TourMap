@@ -1,28 +1,23 @@
 <template>
     <div>
         <Modal :show="openModal" @close="this.openModal = false;">
-            <Display :marker-id="marker"></Display>
+            <!--            <Display :marker-id="marker"></Display>-->
         </Modal>
         <GMapMap
             v-if="located"
-            :center="user"
+            :center="center"
             :zoom="17"
             map-type-id="terrain"
             style="position: absolute; height: 100%; width: 100vw; top: 0; left: 0; z-index: 1"
             :options="options"
             ref="myMapRef"
-            @tilesloaded="changeBounds"
         >
             <GMapMarker v-if="located"
                         ref="userMarker"
                         :key="-1"
                         :position="user"
-                        animation="google.maps.Animation.DROP"
-                        :icon="'https://developers.google.com/maps/documentation/javascript/examples/full/images/info-i_maps.png'"
+                        :icon="icon"
             />
-            <GMapMarker :clickable="true" @click="toggleModal(marker.id)" :key="index"
-                        v-for="(marker, index) in markers" :position="{lat: marker.lat, lng: marker.lng}">
-            </GMapMarker>
         </GMapMap>
         <div class="text-center mt-5" v-if="locationDenied">
             <div class="text-red-800 text-lg">
@@ -63,61 +58,31 @@ export default {
             bounds: [],
             located: false,
             hasButton: false,
-            loadMarkers: true,
             marker: 0,
             openModal: false,
             user: {},
-            markers: [],
             watcherId: null,
-            locationDenied: false
+            locationDenied: false,
+            icon: {
+                url: "https://img.icons8.com/emoji/12x/blue-circle-emoji.png",
+                scaledSize: {width: 40, height: 40},
+                labelOrigin: {x: 16, y: -10}
+            },
+            center: {}
         }
     },
     methods: {
         gotLocation(position) {
             this.user.lat = position.coords.latitude;
             this.user.lng = position.coords.longitude;
+            this.center = this.user;
             this.located = true;
             this.locationDenied = false;
-        },
-        changeBounds() {
-            this.$refs.myMapRef.$mapPromise.then(async map => {
-                if (this.loadMarkers) {
-                    let bounds = map.getBounds();
-                    this.bounds = {
-                        southwest: {lat: bounds.getSouthWest().lat(), lng: bounds.getSouthWest().lng()},
-                        northeast: {lat: bounds.getNorthEast().lat(), lng: bounds.getNorthEast().lng()}
-                    };
-                    this.loadMarkers = false;
-                } else if (!this.hasButton) {
-                    this.addButton(map);
-                    this.hasButton = true;
-                }
-            })
-        },
-        addButton(map) {
-            const controlUI = document.createElement("button");
-            controlUI.classList.add("bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "p-2", "rounded", 'text-base', 'mb-10');
-            controlUI.textContent = 'Search This Area';
-            controlUI.type = 'button';
-            const controlText = document.createElement("div");
-            controlUI.appendChild(controlText);
-            controlUI.addEventListener("click", () => {
-                this.loadMarkers = true;
-                this.changeBounds();
-                this.hasButton = false;
-                controlUI.remove();
-            });
-            map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(controlUI); // eslint-disable-line no-undef
-        },
-        toggleModal(marker) {
-            this.marker = marker;
-            this.openModal = true;
         },
         setUser(position) {
             if (this.user.lat !== position.coords.latitude) {
                 this.moveUser(position);
             }
-
         },
         handleError(error) {
             if (error.code === error.PERMISSION_DENIED)
@@ -132,10 +97,10 @@ export default {
         bounds: function () {
             router.post('/visitor/markers', {
                 bounds: this.bounds,
-                oldMarkers: this.markers
+                // oldMarkers: this.markers
             }, {
                 onSuccess: () => {
-                    this.markers = [...this.markers, ...this.$page.props.flash.message.newMarkers]
+                    // this.markers = [...this.markers, ...this.$page.props.flash.message.newMarkers]
                 },
                 preserveState: true
             })
