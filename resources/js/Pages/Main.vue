@@ -2,11 +2,6 @@
 import { Head } from '@inertiajs/vue3';
 import VisitorMap from "@/Components/Map/VisitorMap.vue";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-defineProps({
-    markers: {
-        type: Array
-    }
-});
 </script>
 <template>
     <Head title="Tour Map" />

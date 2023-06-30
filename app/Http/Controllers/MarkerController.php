@@ -34,9 +34,7 @@ class MarkerController extends Controller {
 
 
     public function visitor(Request $request) {
-        return Inertia::render('Main', [
-            'markers' => []
-        ]);
+        return Inertia::render('Main');
     }
 
     public function displayMarker(Marker $marker) {
