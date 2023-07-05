@@ -1,8 +1,5 @@
 <template>
     <div>
-        <Modal :show="openModal" @close="this.openModal = false;">
-            <!--            <Display :marker-id="marker"></Display>-->
-        </Modal>
         <GMapMap
             v-if="located"
             :center="center"
@@ -40,7 +37,7 @@ export default {
     mounted() {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(this.gotLocation, this.handleError);
-            this.watcherId = navigator.geolocation.watchPosition(this.setUser, this.handleError, {
+            this.watcherId = navigator.geolocation.watchPosition(this.moving, this.handleError, {
                 enableHighAccuracy: true
             });
         }
@@ -58,28 +55,34 @@ export default {
             bounds: [],
             located: false,
             hasButton: false,
-            marker: 0,
             openModal: false,
             user: {},
             watcherId: null,
             locationDenied: false,
             icon: {
                 url: "https://img.icons8.com/emoji/12x/blue-circle-emoji.png",
-                scaledSize: {width: 40, height: 40},
+                scaledSize: {width: 30, height: 30},
                 labelOrigin: {x: 16, y: -10}
             },
-            center: {}
+            center: {},
+            sites: [],
+            currentPosition: {},
+            searchDistance: 0.015,
+            displayDistance: 0.0001
         }
     },
     methods: {
         gotLocation(position) {
             this.user.lat = position.coords.latitude;
             this.user.lng = position.coords.longitude;
+            this.user.heading = position.coords.heading
             this.center = this.user;
             this.located = true;
             this.locationDenied = false;
+            this.updateSites();
+
         },
-        setUser(position) {
+        moving(position) {
             if (this.user.lat !== position.coords.latitude) {
                 this.moveUser(position);
             }
@@ -91,19 +94,46 @@ export default {
         moveUser(position) {
             this.user.lat = position.coords.latitude;
             this.user.lng = position.coords.longitude;
-        }
-    },
-    watch: {
-        bounds: function () {
-            router.post('/visitor/markers', {
-                bounds: this.bounds,
-                // oldMarkers: this.markers
-            }, {
-                onSuccess: () => {
-                    // this.markers = [...this.markers, ...this.$page.props.flash.message.newMarkers]
-                },
-                preserveState: true
+            if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
+                this.updateSites()
+            }
+            let closeSites = [];
+            this.sites.forEach((site) => {
+                if (Math.abs(site.lng - this.user.lng) < this.displayDistance || Math.abs(site.lat - this.user.lng) < this.displayDistance) {
+                    closeSites.push(site);
+                }
             })
+            switch (closeSites.length) {
+                case 0:
+                    break;
+                case 1:
+                    this.displaySite(closeSites[0].texts[0].text);
+                    break;
+                default:
+                    console.log('manySites')
+                    break;
+            }
+        },
+        updateSites() {
+            router.post('visitor/markers', {position: this.user}, {
+                onSuccess: () => {
+                    this.sites = [this.$page.props.flash.message.sites]
+                    if (this.sites.length > 0) {
+                        this.displaySite(this.sites[0][0].texts[0].text)
+                    }
+                }
+            });
+        },
+        async displaySite(site) {
+            const synth = window.speechSynthesis;
+            let voices = await synth.getVoices();
+            const speakText = new SpeechSynthesisUtterance(site);
+            speakText.voice = voices[0];
+            speakText.onerror = (error) => {
+                console.log(error);
+            }
+            synth.speak(speakText);
+            console.log(speakText)
         }
     },
     unmounted() {
