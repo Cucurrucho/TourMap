@@ -49,7 +49,6 @@ class EditRequest extends FormRequest {
                 $markerText->save();
             } else {
                 $markerText = new MarkerText;
-                $markerText->provider = $text['provider'];
                 $markerText->text = $text['text'];
                 $this->marker->texts()->save($markerText);
             }

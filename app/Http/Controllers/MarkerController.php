@@ -51,19 +51,11 @@ class MarkerController extends Controller {
     }
 
     public function getMarkers(Request $request) {
-        $bounds = $request->bounds;
-        $southwest = $bounds['southwest'];
-        $northeast = $bounds['northeast'];
-        $newMarkers = Marker::whereBetween('lat', [$southwest['lat'], $northeast['lat']])
-            ->whereBetween('lng', [$southwest['lng'], $northeast['lng']])->select('lat', 'lng', 'id')->get();
-        if (!empty($request->oldMarkers)) {
-            $oldMarkers = collect($request->oldMarkers)->pluck('id')->toArray();
-            $newMarkers = $newMarkers->filter(function ($marker) use ($oldMarkers) {
-                return !in_array($marker->id, $oldMarkers);
-            });
-        }
+        $distance = 0.02;
+        $position = $request->position;
+        $sites = Marker::whereBetween('lat', [$position['lat'] - $distance, $position['lat'] + $distance])->whereBetween('lng', [$position['lng'] - $distance, $position['lng'] + $distance])->with('texts')->get();
         return back()->with('message', [
-            'newMarkers' => $newMarkers
+            'sites' => $sites
         ]);
     }
 
