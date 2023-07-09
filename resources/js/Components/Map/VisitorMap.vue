@@ -68,8 +68,9 @@ export default {
             sites: [],
             currentPosition: {},
             searchDistance: 0.015,
-            displayDistance: 0.0001,
-            synth: window.speechSynthesis
+            displayDistance: 0.00005,
+            synth: window.speechSynthesis,
+            alreadySpoken: []
         }
     },
     methods: {
@@ -98,23 +99,28 @@ export default {
             if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
                 this.updateSites()
             }
-            if (!this.synth.speaking){
+            if (!this.synth.speaking) {
                 let closeSites = [];
                 this.sites.forEach((site) => {
                     if (Math.abs(site.lng - this.user.lng) < this.displayDistance || Math.abs(site.lat - this.user.lng) < this.displayDistance) {
                         closeSites.push(site);
                     }
                 })
-                switch (closeSites.length) {
-                    case 0:
-                        break;
-                    case 1:
-                        if (this.checkHeading(position, closeSites[0]))
-                            this.displaySite(closeSites[0].text);
-                        break;
-                    default:
-                        console.log('manySites')
-                        break;
+                if (this.alreadySpoken.includes(closeSites.id)){
+                    switch (closeSites.length) {
+                        case 0:
+                            break;
+                        case 1:
+                            if (this.checkHeading(position, closeSites[0]))
+                                let site = closeSites[0]
+                            this.displaySite(site.name + ' ' + site.text);
+                            break;
+                        default:
+                            console.log('manySites')
+                            break;
+                    }
+                } else {
+                    this.$toast.warning('This Site Has Already Been Viewed');
                 }
             }
         },
@@ -126,13 +132,14 @@ export default {
             });
         },
         async displaySite(site) {
-            let voices = await this. synth.getVoices();
+            let voices = await this.synth.getVoices();
             const speakText = new SpeechSynthesisUtterance(site);
             speakText.voice = voices[0];
             speakText.onerror = (error) => {
                 console.log(error);
             }
             this.synth.speak(speakText);
+            this.alreadySpoken.push(site.id);
         },
         checkHeading(position, site) {
             let heading = position.coords.heading;
@@ -142,32 +149,32 @@ export default {
                 case (heading === null || isNaN(heading)):
                     break;
                 case (0 <= heading < 90):
-                    if (lat > site.lat){
+                    if (lat > site.lat) {
                         return true;
 
                     }
                     break;
                 case (90 <= heading <= 180):
-                    if (lng > site.lng){
+                    if (lng > site.lng) {
                         return true;
 
                     }
                     break;
                 case (180 <= heading < 270):
-                    if (lat < site.lat){
+                    if (lat < site.lat) {
                         return true;
 
                     }
                     break;
                 case (heading >= 270):
-                    if (lng < site.lng){
+                    if (lng < site.lng) {
                         return true;
                     }
                     break;
                 default:
                     break;
             }
-            return  false;
+            return false;
         }
     },
     unmounted() {
