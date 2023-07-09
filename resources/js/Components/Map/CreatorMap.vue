@@ -63,7 +63,7 @@ export default {
             openModal: false,
             formLat: 0,
             formLng: 0,
-            formMarker: {photos: [{url: 'images/upload.png'}], texts: [{provider: '', text: ''}]},
+            formMarker: {photos: [{url: 'images/upload.png'}]},
             bounds: [],
             located: false,
             locationDenied: false,
@@ -94,7 +94,7 @@ export default {
         },
         toggleModal() {
             this.openModal = !this.openModal;
-            this.formMarker = {photos: [{url: 'images/upload.png'}], texts: [{provider: '', text: ''}]};
+            this.formMarker = {photos: [{url: 'images/upload.png'}]};
         },
         showMarker(event, marker) {
             if (this.$page.props.auth.user && this.editMode) {

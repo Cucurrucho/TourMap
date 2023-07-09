@@ -17,6 +17,7 @@ return new class extends Migration
             $table->double('lat');
             $table->double('lng');
             $table->string('type');
+            $table->text('text');
             $table->foreignId('user_id');
             $table->timestamps();
         });

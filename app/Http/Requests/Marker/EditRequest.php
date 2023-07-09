@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Marker;
 
 use App\Models\MarkerResources\MarkerPhoto;
-use App\Models\MarkerResources\MarkerText;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -30,32 +29,17 @@ class EditRequest extends FormRequest {
             'type' => 'required|string',
             'lat' => 'required|numeric',
             'lng' => 'required|numeric',
-            'name' => 'required|string'
+            'name' => 'required|string',
+            'text' => 'required|string'
         ];
     }
 
     public function commit() {
         $this->marker->type = $this->type;
         $this->marker->name = $this->name;
+        $this->marker->text = $this->text;
         $this->marker->save();
-        $textsToDelete = $this->marker->texts;
-        foreach ($this->texts as $text){
-            if (isset($text['id'])){
-                $textsToDelete = $textsToDelete->reject(function ($markerText) use ($text){
-                    return $markerText->id == $text['id'];
-                });
-                $markerText = MarkerText::find($text['id']);
-                $markerText->text = $text['text'];
-                $markerText->save();
-            } else {
-                $markerText = new MarkerText;
-                $markerText->text = $text['text'];
-                $this->marker->texts()->save($markerText);
-            }
-        }
-        foreach ($textsToDelete as $textToDelete){
-            $textToDelete->delete();
-        }
+
         $photosToDelete = $this->marker->photos;
         foreach ($this->images as $image){
             if (is_a($image, UploadedFile::class)){

@@ -20,7 +20,7 @@ class MarkerController extends Controller {
     }
 
     public function get(Request $request) {
-        $markers = Marker::with('texts', 'photos')->where('user_id', $request->user()->id)->get();
+        $markers = Marker::with( 'photos')->where('user_id', $request->user()->id)->get();
         return Inertia::render('Sites/Map', [
             'markers' => $markers,
         ]);
@@ -39,11 +39,9 @@ class MarkerController extends Controller {
 
     public function displayMarker(Marker $marker) {
         $photos = $marker->photos()->select('url')->get();
-        $texts = $marker->texts()->select('text')->get();
         return back()->with('message', [
                 'type' => $marker->type,
                 'photos' => $photos,
-                'texts' => $texts,
                 'name' => $marker->name,
                 'creator' => $marker->user->name
             ]
@@ -53,7 +51,7 @@ class MarkerController extends Controller {
     public function getMarkers(Request $request) {
         $distance = 0.02;
         $position = $request->position;
-        $sites = Marker::whereBetween('lat', [$position['lat'] - $distance, $position['lat'] + $distance])->whereBetween('lng', [$position['lng'] - $distance, $position['lng'] + $distance])->with('texts')->get();
+        $sites = Marker::whereBetween('lat', [$position['lat'] - $distance, $position['lat'] + $distance])->whereBetween('lng', [$position['lng'] - $distance, $position['lng'] + $distance])->get();
         return back()->with('message', [
             'sites' => $sites
         ]);
