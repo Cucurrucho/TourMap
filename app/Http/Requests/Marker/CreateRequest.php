@@ -4,7 +4,6 @@ namespace App\Http\Requests\Marker;
 
 use App\Models\Marker;
 use App\Models\MarkerResources\MarkerPhoto;
-use App\Models\MarkerResources\MarkerText;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +27,8 @@ class CreateRequest extends FormRequest {
             'type' => 'required|string',
             'lat' => 'required|numeric',
             'lng' => 'required|numeric',
-            'name' => 'required|string'
+            'name' => 'required|string',
+            'text' => 'required|string'
         ];
     }
 
@@ -38,12 +38,8 @@ class CreateRequest extends FormRequest {
         $marker->lat = $this->lat;
         $marker->lng = $this->lng;
         $marker->name = $this->name;
+        $marker->text = $this->text;
         $this->user()->markers()->save($marker);
-        foreach ($this->texts as $text){
-            $markerText = new MarkerText;
-            $markerText->text = $text['text'];
-            $marker->texts()->save($markerText);
-        }
         foreach ($this->images as $image){
             if (!is_array($image)){
                 $markerImage = new MarkerPhoto;

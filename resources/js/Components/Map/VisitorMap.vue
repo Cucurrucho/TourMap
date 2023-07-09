@@ -68,7 +68,8 @@ export default {
             sites: [],
             currentPosition: {},
             searchDistance: 0.015,
-            displayDistance: 0.0001
+            displayDistance: 0.0001,
+            synth: window.speechSynthesis
         }
     },
     methods: {
@@ -97,43 +98,77 @@ export default {
             if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
                 this.updateSites()
             }
-            let closeSites = [];
-            this.sites.forEach((site) => {
-                if (Math.abs(site.lng - this.user.lng) < this.displayDistance || Math.abs(site.lat - this.user.lng) < this.displayDistance) {
-                    closeSites.push(site);
+            if (!this.synth.speaking){
+                let closeSites = [];
+                this.sites.forEach((site) => {
+                    if (Math.abs(site.lng - this.user.lng) < this.displayDistance || Math.abs(site.lat - this.user.lng) < this.displayDistance) {
+                        closeSites.push(site);
+                    }
+                })
+                switch (closeSites.length) {
+                    case 0:
+                        break;
+                    case 1:
+                        if (this.checkHeading(position, closeSites[0]))
+                            this.displaySite(closeSites[0].text);
+                        break;
+                    default:
+                        console.log('manySites')
+                        break;
                 }
-            })
-            switch (closeSites.length) {
-                case 0:
-                    break;
-                case 1:
-                    this.displaySite(closeSites[0].texts[0].text);
-                    break;
-                default:
-                    console.log('manySites')
-                    break;
             }
         },
         updateSites() {
             router.post('visitor/markers', {position: this.user}, {
                 onSuccess: () => {
-                    this.sites = [this.$page.props.flash.message.sites]
-                    if (this.sites.length > 0) {
-                        this.displaySite(this.sites[0][0].texts[0].text)
-                    }
+                    this.sites = this.$page.props.flash.message.sites;
+                    this.displaySite(this.sites[0].text)
                 }
             });
         },
         async displaySite(site) {
-            const synth = window.speechSynthesis;
-            let voices = await synth.getVoices();
+            let voices = await this. synth.getVoices();
             const speakText = new SpeechSynthesisUtterance(site);
             speakText.voice = voices[0];
             speakText.onerror = (error) => {
                 console.log(error);
             }
-            synth.speak(speakText);
-            console.log(speakText)
+            this.synth.speak(speakText);
+        },
+        checkHeading(position, site) {
+            let heading = position.coords.heading;
+            let lat = position.coords.latitude;
+            let lng = position.coords.longitude;
+            switch (true) {
+                case (heading === null || isNaN(heading)):
+                    break;
+                case (0 <= heading < 90):
+                    if (lat > site.lat){
+                        return true;
+
+                    }
+                    break;
+                case (90 <= heading <= 180):
+                    if (lng > site.lng){
+                        return true;
+
+                    }
+                    break;
+                case (180 <= heading < 270):
+                    if (lat < site.lat){
+                        return true;
+
+                    }
+                    break;
+                case (heading >= 270):
+                    if (lng < site.lng){
+                        return true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return  false;
         }
     },
     unmounted() {

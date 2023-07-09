@@ -34,34 +34,23 @@
                 <div class="mt-2">
                     <div class="text-center mt-2"><h4>Resources</h4></div>
                     <div class="mb-4">
-                        <div class="text-center mt-2"><h6>Texts</h6></div>
+                        <div class="text-center mt-2"><h6>Text</h6></div>
                         <div>
-                            <div class="shadow-xl bg-gray-100 pt-2 pb-2 mb-3 rounded-lg"
-                                 v-for="(text, index) in form.texts"
-                                 :key="index">
-                                <div class="float-right">
-                                    <button type="button" @click="removeText(index)"
-                                            class="bg-red-500 hover:bg-red-700 text-white font-bold rounded-full h-6 w-6">
-                                        X
-                                    </button>
-                                </div>
+                            <div class="shadow-xl bg-gray-100 pt-2 pb-2 mb-3 rounded-lg">
                                 <div class="mb-4">
                                     <div class="m-4">
                                         <label class="block text-gray-700 text-sm font-bold mb-2" for="provider">
                                             Text
                                         </label>
-                                        <textarea v-model="text.text"
+                                        <textarea v-model="form.text"
                                                   class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500">
                                     </textarea>
                                     </div>
-
+                                    <InputError class="mt-2" :message="form.errors.text">
+                                    </InputError>
                                 </div>
 
                             </div>
-                            <button type="button" @click="addText"
-                                    class="bg-green-300 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                                +
-                            </button>
                         </div>
                     </div>
                     <div class="mb-4">
@@ -130,7 +119,7 @@ export default {
         return {
             form: useForm({
                 images: this.startingMarker.photos,
-                texts: this.startingMarker.texts,
+                text: this.startingMarker.text,
                 type: this.startingMarker.hasOwnProperty('type') ? this.startingMarker.type : '',
                 lat: this.lat,
                 lng: this.lng,
@@ -148,12 +137,6 @@ export default {
 
                 }
             })
-        },
-        addText() {
-            this.form.texts.push({provider: '', text: ''})
-        },
-        removeText(index) {
-            this.form.texts.splice(index, 1);
         },
         addImage() {
             this.form.images.push({url: 'images/upload.png'})
