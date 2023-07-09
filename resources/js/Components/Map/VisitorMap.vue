@@ -106,14 +106,15 @@ export default {
                         closeSites.push(site);
                     }
                 })
-                if (this.alreadySpoken.includes(closeSites.id)){
+                if (this.alreadySpoken.includes(closeSites.id)) {
                     switch (closeSites.length) {
                         case 0:
                             break;
                         case 1:
-                            if (this.checkHeading(position, closeSites[0]))
-                                let site = closeSites[0]
-                            this.displaySite(site.name + ' ' + site.text);
+                            if (this.checkHeading(position, closeSites[0])) {
+                                let site = closeSites[0];
+                                this.displaySite(site.name + ' ' + site.text);
+                            }
                             break;
                         default:
                             console.log('manySites')
