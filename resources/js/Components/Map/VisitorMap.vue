@@ -34,12 +34,13 @@ import Modal from '@/Components/Modal.vue';
 export default {
     name: "VisitorMap",
     components: {Display, Modal},
-    mounted() {
+     mounted() {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(this.gotLocation, this.handleError);
             this.watcherId = navigator.geolocation.watchPosition(this.moving, this.handleError, {
                 enableHighAccuracy: true
             });
+            this.voice = this.synth.getVoices()[0];
         }
     },
     data() {
@@ -70,7 +71,8 @@ export default {
             searchDistance: 0.015,
             displayDistance: 0.00005,
             synth: window.speechSynthesis,
-            alreadySpoken: []
+            alreadySpoken: [],
+            voice: null
         }
     },
     methods: {
@@ -98,32 +100,32 @@ export default {
             this.user.lng = position.coords.longitude;
             if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
                 this.updateSites()
-            }
-            if (!this.synth.speaking) {
-                let closeSites = [];
-                this.sites.forEach((site) => {
-                    if (Math.abs(site.lng - this.user.lng) < this.displayDistance || Math.abs(site.lat - this.user.lng) < this.displayDistance) {
-                        closeSites.push(site);
+            } else {
+                if (!this.synth.speaking) {
+                    let closeSites = [];
+                    this.sites.forEach((site) => {
+                        if (Math.abs(site.lng - this.user.lng) < this.displayDistance || Math.abs(site.lat - this.user.lng) < this.displayDistance) {
+                            closeSites.push(site);
+                        }
+                    })
+                    if (this.alreadySpoken.includes(closeSites.id)) {
+                        switch (closeSites.length) {
+                            case 0:
+                                break;
+                            case 1:
+                                if (this.checkHeading(position, closeSites[0])) {
+                                    let site = closeSites[0];
+                                    this.displaySite(site.name + ' ' + site.text);
+                                }
+                                break;
+                            default:
+                                console.log('manySites')
+                                break;
+                        }
                     }
-                })
-                if (this.alreadySpoken.includes(closeSites.id)) {
-                    switch (closeSites.length) {
-                        case 0:
-                            break;
-                        case 1:
-                            if (this.checkHeading(position, closeSites[0])) {
-                                let site = closeSites[0];
-                                this.displaySite(site.name + ' ' + site.text);
-                            }
-                            break;
-                        default:
-                            console.log('manySites')
-                            break;
-                    }
-                } else {
-                    this.$toast.warning('This Site Has Already Been Viewed');
                 }
             }
+
         },
         updateSites() {
             router.post('visitor/markers', {position: this.user}, {
@@ -133,9 +135,9 @@ export default {
             });
         },
         async displaySite(site) {
-            let voices = await this.synth.getVoices();
+
             const speakText = new SpeechSynthesisUtterance(site);
-            speakText.voice = voices[0];
+            speakText.voice = this.voice;
             speakText.onerror = (error) => {
                 console.log(error);
             }
