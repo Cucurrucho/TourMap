@@ -123,12 +123,14 @@ export default {
                                 }
                                 break;
                             default:
-                                console.log('manySites')
+                                this.$toast.info('Too many sites around');
                                 break;
                         }
                     } else {
                         this.$toast.warning(site.name + ' has already been viewed')
                     }
+                } else {
+                    this.$toast.info('Already Speaking')
                 }
             }
 
