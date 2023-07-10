@@ -8,6 +8,7 @@
             style="position: absolute; height: 100%; width: 100vw; top: 0; left: 0; z-index: 1"
             :options="options"
             ref="myMapRef"
+            @tilesloaded.once="addTourModeButton"
         >
             <GMapMarker v-if="located"
                         ref="userMarker"
@@ -34,7 +35,7 @@ import Modal from '@/Components/Modal.vue';
 export default {
     name: "VisitorMap",
     components: {Display, Modal},
-     mounted() {
+    mounted() {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(this.gotLocation, this.handleError);
             this.watcherId = navigator.geolocation.watchPosition(this.moving, this.handleError, {
@@ -69,10 +70,13 @@ export default {
             sites: [],
             currentPosition: {},
             searchDistance: 0.015,
-            displayDistance: 0.00005,
+            displayDistance: 0.001,
             synth: window.speechSynthesis,
             alreadySpoken: [],
-            voice: null
+            voice: null,
+            touring: false,
+            tourModeButton: null
+
         }
     },
     methods: {
@@ -100,7 +104,7 @@ export default {
             this.user.lng = position.coords.longitude;
             if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
                 this.updateSites()
-            } else {
+            } else if (this.touring) {
                 if (!this.synth.speaking) {
                     let closeSites = [];
                     this.sites.forEach((site) => {
@@ -136,15 +140,16 @@ export default {
                 }
             });
         },
-        async displaySite(site) {
-
-            const speakText = new SpeechSynthesisUtterance(site);
-            speakText.voice = this.voice;
-            speakText.onerror = (error) => {
-                console.log(error);
+        displaySite(site) {
+            if (this.touring) {
+                const speakText = new SpeechSynthesisUtterance(site);
+                speakText.voice = this.voice;
+                speakText.onerror = (error) => {
+                    console.log(error);
+                }
+                this.synth.speak(speakText);
+                this.alreadySpoken.push(site.id);
             }
-            this.synth.speak(speakText);
-            this.alreadySpoken.push(site.id);
         },
         checkHeading(position, site) {
             let heading = position.coords.heading;
@@ -180,6 +185,28 @@ export default {
                     break;
             }
             return false;
+        },
+        addTourModeButton() {
+            this.$refs.myMapRef.$mapPromise.then(async map => {
+                this.tourModeButton = document.createElement("button");
+
+                this.tourModeButton.classList.add("bg-green-500", "hover:bg-green-700", "text-white", "font-bold", "w-32", "rounded", 'text-base', 'mb-10', 'h-auto');
+                this.tourModeButton.textContent = 'Start Tour';
+                this.tourModeButton.type = 'button';
+                this.tourModeButton.addEventListener("click", () => {
+                    this.tourModeClick();
+                });
+                map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.tourModeButton); // eslint-disable-line no-undef
+            });
+        },
+        tourModeClick() {
+            if (!this.touring) {
+                this.tourModeButton.textContent = 'End Tour';
+                this.touring = true;
+            } else {
+                this.touring = false;
+                this.tourModeButton.textContent = 'Start Tour';
+            }
         }
     },
     unmounted() {
