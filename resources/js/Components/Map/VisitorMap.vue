@@ -108,7 +108,7 @@ export default {
                             closeSites.push(site);
                         }
                     })
-                    if (this.alreadySpoken.includes(closeSites.id)) {
+                    if (!this.alreadySpoken.includes(closeSites.id)) {
                         switch (closeSites.length) {
                             case 0:
                                 break;
@@ -122,6 +122,8 @@ export default {
                                 console.log('manySites')
                                 break;
                         }
+                    } else {
+                        this.$toast.warning(site.name + ' has already been viewed')
                     }
                 }
             }
