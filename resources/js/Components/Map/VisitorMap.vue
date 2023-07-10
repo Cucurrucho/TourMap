@@ -133,8 +133,6 @@ export default {
             router.post('visitor/markers', {position: this.user}, {
                 onSuccess: () => {
                     this.sites = this.$page.props.flash.message.sites;
-                    let site = this.sites[0]
-                    this.displaySite(site.name + ' ' + site.text);
                 }
             });
         },
