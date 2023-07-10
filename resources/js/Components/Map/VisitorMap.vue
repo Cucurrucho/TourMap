@@ -70,7 +70,7 @@ export default {
             sites: [],
             currentPosition: {},
             searchDistance: 0.015,
-            displayDistance: 0.001,
+            displayDistance: 0.0002,
             synth: window.speechSynthesis,
             alreadySpoken: [],
             voice: null,
