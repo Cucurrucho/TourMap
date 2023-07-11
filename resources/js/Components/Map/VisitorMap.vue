@@ -113,22 +113,22 @@ export default {
                             closeSites.push(site);
                         }
                     })
-                    if (!this.alreadySpoken.includes(closeSites.id)) {
-                        switch (closeSites.length) {
-                            case 0:
-                                break;
-                            case 1:
-                                if (this.checkHeading(position, closeSites[0])) {
-                                    let site = closeSites[0];
+                    switch (closeSites.length) {
+                        case 0:
+                            break;
+                        case 1:
+                            if (this.checkHeading(position, closeSites[0])) {
+                                let site = closeSites[0];
+                                if (this.alreadySpoken.includes(site.id)) {
                                     this.displaySite(site.name + ' ' + site.text);
+                                } else {
+                                    this.$toast.warning(site.name + ' has already been viewed')
                                 }
-                                break;
-                            default:
-                                this.$toast.warning('Too many sites around');
-                                break;
-                        }
-                    } else {
-                        this.$toast.warning(site.name + ' has already been viewed')
+                            }
+                            break;
+                        default:
+                            this.$toast.warning('Too many sites around');
+                            break;
                     }
                 } else {
                     this.$toast.warning('Already Speaking')
