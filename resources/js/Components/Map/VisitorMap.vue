@@ -119,10 +119,9 @@ export default {
                         case 1:
                             if (this.checkHeading(position, closeSites[0])) {
                                 let site = closeSites[0];
-                                if (!this.alreadySpoken.includes(site.name)) {
-                                    this.displaySite(site.name + ' ' + site.text);
+                                if (!this.alreadySpoken.includes(site.id)) {
+                                    this.displaySite(site);
                                     this.$toast.info(site.name);
-                                    this.$toast.info(this.alreadySpoken[0]);
                                 } else {
                                     this.$toast.warning(site.name + ' has already been viewed')
                                 }
@@ -141,19 +140,19 @@ export default {
         updateSites() {
             router.post('visitor/markers', {position: this.user}, {
                 onSuccess: () => {
-                    this.sites = this.$page.props.flash.message.sites;
+                    this.sites = this.$page.props.flash.message.sites
                 }
             });
         },
         displaySite(site) {
             if (this.touring) {
-                const speakText = new SpeechSynthesisUtterance(site);
+                const speakText = new SpeechSynthesisUtterance(site.text);
                 speakText.voice = this.voice;
                 speakText.onerror = (error) => {
                     this.$toast.error(error.name)
                 }
                 this.synth.speak(speakText);
-                this.alreadySpoken.push(site.name);
+                this.alreadySpoken.push(site.id);
             }
         },
         checkHeading(position, site) {
