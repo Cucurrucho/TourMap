@@ -15,7 +15,14 @@
                         :key="-1"
                         :position="user"
                         :icon="icon"
+                        @click="$toast.info('lat: ' + user.lat + ' lng: ' + user.lng)"
             />
+            <GMapMarker v-for="site in sites" :key="site.id"
+                        @click="$toast.info('distance between user and point in lng: '
+                         + (Math.abs(user.lng) - Math.abs(site.lng)) / 0.00001
+                         + '    |||| distance between user and point in lat: '
+                         + (Math.abs(user.lat) - Math.abs(site.lat)) / 0.00001)"
+                        :position="{lat: site.lat, lng: site.lng}"></GMapMarker>
         </GMapMap>
         <div class="text-center mt-5" v-if="locationDenied">
             <div class="text-red-800 text-lg">
