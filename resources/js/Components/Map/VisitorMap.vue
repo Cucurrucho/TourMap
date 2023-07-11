@@ -119,8 +119,10 @@ export default {
                         case 1:
                             if (this.checkHeading(position, closeSites[0])) {
                                 let site = closeSites[0];
-                                if (!this.alreadySpoken.includes(site.id)) {
+                                if (!this.alreadySpoken.includes(site.name)) {
                                     this.displaySite(site.name + ' ' + site.text);
+                                    this.$toast.info(site.name);
+                                    this.$toast.info(this.alreadySpoken[0]);
                                 } else {
                                     this.$toast.warning(site.name + ' has already been viewed')
                                 }
@@ -151,7 +153,7 @@ export default {
                     this.$toast.error(error.name)
                 }
                 this.synth.speak(speakText);
-                this.alreadySpoken.push(site.id);
+                this.alreadySpoken.push(site.name);
             }
         },
         checkHeading(position, site) {
