@@ -119,7 +119,7 @@ export default {
                         case 1:
                             if (this.checkHeading(position, closeSites[0])) {
                                 let site = closeSites[0];
-                                if (this.alreadySpoken.includes(site.id)) {
+                                if (!this.alreadySpoken.includes(site.id)) {
                                     this.displaySite(site.name + ' ' + site.text);
                                 } else {
                                     this.$toast.warning(site.name + ' has already been viewed')
