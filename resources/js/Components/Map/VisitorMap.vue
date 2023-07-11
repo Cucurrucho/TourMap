@@ -18,10 +18,7 @@
                         @click="$toast.info('lat: ' + user.lat + ' lng: ' + user.lng)"
             />
             <GMapMarker v-for="site in sites" :key="site.id"
-                        @click="$toast.info('distance between user and point in lng: '
-                         + (Math.abs(user.lng) - Math.abs(site.lng)) / 0.00001
-                         + '    |||| distance between user and point in lat: '
-                         + (Math.abs(user.lat) - Math.abs(site.lat)) / 0.00001)"
+                        @click="$toast.info('distance between user and this: ' + distance(user.lng, user.lat, site.lng, site.lat))"
                         :position="{lat: site.lat, lng: site.lng}"></GMapMarker>
         </GMapMap>
         <div class="text-center mt-5" v-if="locationDenied">
@@ -39,6 +36,11 @@ import {router} from "@inertiajs/vue3";
 import Display from "@/Components/Map/Site/Display.vue";
 import Modal from '@/Components/Modal.vue';
 
+if (typeof (Number.prototype.toRad) === "undefined") {
+    Number.prototype.toRad = function () {
+        return this * Math.PI / 180;
+    }
+}
 export default {
     name: "VisitorMap",
     components: {Display, Modal},
@@ -77,7 +79,7 @@ export default {
             sites: [],
             currentPosition: {},
             searchDistance: 0.015,
-            displayDistance: 0.0001,
+            displayDistance: 15,
             synth: window.speechSynthesis,
             alreadySpoken: [],
             voice: null,
@@ -116,7 +118,7 @@ export default {
                 if (!this.synth.speaking) {
                     let closeSites = [];
                     this.sites.forEach((site) => {
-                        if (Math.abs(site.lng - this.user.lng) < this.displayDistance || Math.abs(site.lat - this.user.lng) < this.displayDistance) {
+                        if (this.distance(site.lng, site.lat, this.user.lng, this.user.lat) < this.displayDistance) {
                             closeSites.push(site);
                         }
                     })
@@ -135,7 +137,16 @@ export default {
                             }
                             break;
                         default:
-                            this.$toast.warning('Too many sites around');
+                            closeSites.forEach((site) => {
+                                if (this.checkHeading(position, site)) {
+                                    if (!this.alreadySpoken.includes(site.id)) {
+                                        this.displaySite(site);
+                                        this.$toast.info(site.name);
+                                    } else {
+                                        this.$toast.warning(site.name + ' has already been viewed')
+                                    }
+                                }
+                            })
                             break;
                     }
                 } else {
@@ -237,6 +248,17 @@ export default {
                 this.touring = false;
                 this.tourModeButton.textContent = 'Start Tour';
             }
+        },
+        distance(lon1, lat1, lon2, lat2) {
+            var R = 6371 * 1000; // Radius of the earth in km
+            var dLat = (lat2 - lat1).toRad();  // Javascript functions in radians
+            var dLon = (lon2 - lon1).toRad();
+            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            var d = R * c; // Distance in km
+            return d;
         }
     },
     unmounted() {
