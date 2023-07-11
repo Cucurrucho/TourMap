@@ -79,7 +79,7 @@ export default {
             sites: [],
             currentPosition: {},
             searchDistance: 0.015,
-            displayDistance: 15,
+            displayDistance: 20,
             synth: window.speechSynthesis,
             alreadySpoken: [],
             voice: null,
@@ -109,36 +109,26 @@ export default {
                 this.locationDenied = true;
         },
         moveUser(position) {
-            this.user.lat = position.coords.latitude;
-            this.user.lng = position.coords.longitude;
-            if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
-                this.updateSites()
-            }
-            if (this.touring) {
-                if (!this.synth.speaking) {
-                    let closeSites = [];
-                    this.sites.forEach((site) => {
-                        if (this.distance(site.lng, site.lat, this.user.lng, this.user.lat) < this.displayDistance) {
-                            closeSites.push(site);
-                        }
-                    })
-                    switch (closeSites.length) {
-                        case 0:
-                            break;
-                        case 1:
-                            if (this.checkHeading(position, closeSites[0])) {
-                                let site = closeSites[0];
-                                if (!this.alreadySpoken.includes(site.id)) {
-                                    this.displaySite(site);
-                                    this.$toast.info(site.name);
-                                } else {
-                                    this.$toast.warning(site.name + ' has already been viewed')
-                                }
+            if (position.coords.accuracy > 5 ){
+                this.user.lat = position.coords.latitude;
+                this.user.lng = position.coords.longitude;
+                if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
+                    this.updateSites()
+                }
+                if (this.touring) {
+                    if (!this.synth.speaking) {
+                        let closeSites = [];
+                        this.sites.forEach((site) => {
+                            if (this.distance(site.lng, site.lat, this.user.lng, this.user.lat) < this.displayDistance) {
+                                closeSites.push(site);
                             }
-                            break;
-                        default:
-                            closeSites.forEach((site) => {
-                                if (this.checkHeading(position, site)) {
+                        })
+                        switch (closeSites.length) {
+                            case 0:
+                                break;
+                            case 1:
+                                if (this.checkHeading(position, closeSites[0])) {
+                                    let site = closeSites[0];
                                     if (!this.alreadySpoken.includes(site.id)) {
                                         this.displaySite(site);
                                         this.$toast.info(site.name);
@@ -146,13 +136,28 @@ export default {
                                         this.$toast.warning(site.name + ' has already been viewed')
                                     }
                                 }
-                            })
-                            break;
+                                break;
+                            default:
+                                closeSites.forEach((site) => {
+                                    if (this.checkHeading(position, site)) {
+                                        if (!this.alreadySpoken.includes(site.id)) {
+                                            this.displaySite(site);
+                                            this.$toast.info(site.name);
+                                        } else {
+                                            this.$toast.warning(site.name + ' has already been viewed')
+                                        }
+                                    }
+                                })
+                                break;
+                        }
+                    } else {
+                        this.$toast.warning('Already Speaking')
                     }
-                } else {
-                    this.$toast.warning('Already Speaking')
                 }
+            } else {
+                this.$toast.info('Necessary Accuracy not achieved')
             }
+
 
         },
         updateSites() {
