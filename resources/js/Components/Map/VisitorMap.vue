@@ -70,7 +70,7 @@ export default {
             sites: [],
             currentPosition: {},
             searchDistance: 0.015,
-            displayDistance: 0.001,
+            displayDistance: 0.0002,
             synth: window.speechSynthesis,
             alreadySpoken: [],
             voice: null,
@@ -104,7 +104,8 @@ export default {
             this.user.lng = position.coords.longitude;
             if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
                 this.updateSites()
-            } else if (this.touring) {
+            }
+            if (this.touring) {
                 if (!this.synth.speaking) {
                     let closeSites = [];
                     this.sites.forEach((site) => {
@@ -123,12 +124,14 @@ export default {
                                 }
                                 break;
                             default:
-                                console.log('manySites')
+                                this.$toast.warning('Too many sites around');
                                 break;
                         }
                     } else {
                         this.$toast.warning(site.name + ' has already been viewed')
                     }
+                } else {
+                    this.$toast.warning('Already Speaking')
                 }
             }
 
@@ -145,7 +148,7 @@ export default {
                 const speakText = new SpeechSynthesisUtterance(site);
                 speakText.voice = this.voice;
                 speakText.onerror = (error) => {
-                    console.log(error);
+                    this.$toast.error(error.name)
                 }
                 this.synth.speak(speakText);
                 this.alreadySpoken.push(site.id);
@@ -158,26 +161,45 @@ export default {
             switch (true) {
                 case (heading === null || isNaN(heading)):
                     break;
-                case (0 <= heading < 90):
+                case (315 <= heading || 0 <= heading < 45):
                     if (lat > site.lat) {
+                        if (lng > site.lng) {
+                            this.$toast.info('Site: ' + site.name + ' to the right')
+                        } else {
+                            this.$toast.info('Site: ' + site.name + ' to the left')
+                        }
                         return true;
-
                     }
                     break;
-                case (90 <= heading <= 180):
+                case (45 <= heading < 125):
                     if (lng > site.lng) {
+                        if (lat > site.lat) {
+                            this.$toast.info('Site: ' + site.name + ' to the right')
+                        } else {
+                            this.$toast.info('Site: ' + site.name + ' to the left')
+                        }
                         return true;
 
                     }
                     break;
-                case (180 <= heading < 270):
+                case (125 <= heading < 225):
                     if (lat < site.lat) {
+                        if (lng > site.lng) {
+                            this.$toast.info('Site: ' + site.name + ' to the left')
+                        } else {
+                            this.$toast.info('Site: ' + site.name + ' to the right')
+                        }
                         return true;
 
                     }
                     break;
-                case (heading >= 270):
+                case (225 <= heading < 315):
                     if (lng < site.lng) {
+                        if (lat > site.lat) {
+                            this.$toast.info('Site: ' + site.name + ' to the left')
+                        } else {
+                            this.$toast.info('Site: ' + site.name + ' to the right')
+                        }
                         return true;
                     }
                     break;
