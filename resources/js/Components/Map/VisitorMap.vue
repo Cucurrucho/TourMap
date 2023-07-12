@@ -46,9 +46,15 @@ export default {
     components: {Display, Modal},
     mounted() {
         if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(this.gotLocation, this.handleError);
+            navigator.geolocation.getCurrentPosition(this.gotLocation, this.handleError, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            });
             this.watcherId = navigator.geolocation.watchPosition(this.moving, this.handleError, {
-                enableHighAccuracy: true
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
             });
             this.voice = this.synth.getVoices()[0];
         }
@@ -92,8 +98,9 @@ export default {
         gotLocation(position) {
             this.user.lat = position.coords.latitude;
             this.user.lng = position.coords.longitude;
-            this.user.heading = position.coords.heading
-            this.center = this.user;
+            this.user.heading = position.coords.heading;
+            this.center.lat = position.coords.latitude;
+            this.center.lng = position.coords.longitude;
             this.located = true;
             this.locationDenied = false;
             this.updateSites();
@@ -109,7 +116,7 @@ export default {
                 this.locationDenied = true;
         },
         moveUser(position) {
-            if (position.coords.accuracy > 5 ){
+            if (position.coords.accuracy < 10    ){
                 this.user.lat = position.coords.latitude;
                 this.user.lng = position.coords.longitude;
                 if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
@@ -132,8 +139,6 @@ export default {
                                     if (!this.alreadySpoken.includes(site.id)) {
                                         this.displaySite(site);
                                         this.$toast.info(site.name);
-                                    } else {
-                                        this.$toast.warning(site.name + ' has already been viewed')
                                     }
                                 }
                                 break;
@@ -143,22 +148,14 @@ export default {
                                         if (!this.alreadySpoken.includes(site.id)) {
                                             this.displaySite(site);
                                             this.$toast.info(site.name);
-                                        } else {
-                                            this.$toast.warning(site.name + ' has already been viewed')
                                         }
                                     }
                                 })
                                 break;
                         }
-                    } else {
-                        this.$toast.warning('Already Speaking')
                     }
                 }
-            } else {
-                this.$toast.info('Necessary Accuracy not achieved')
             }
-
-
         },
         updateSites() {
             router.post('visitor/markers', {position: this.user}, {
@@ -174,6 +171,13 @@ export default {
                 speakText.onerror = (error) => {
                     this.$toast.error(error.name)
                 }
+                this.$toast.open({
+                    message: site.text,
+                    type: "info",
+                    position: "top",
+                    duration: 0,
+                    dismissible: true
+                })
                 this.synth.speak(speakText);
                 this.alreadySpoken.push(site.id);
             }
