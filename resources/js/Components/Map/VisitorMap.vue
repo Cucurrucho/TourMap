@@ -19,7 +19,10 @@
             />
             <GMapMarker v-for="site in sites" :key="site.id"
                         @click="$toast.info('distance between user and this: ' + distance(user.lng, user.lat, site.lng, site.lat))"
-                        :position="{lat: site.lat, lng: site.lng}"></GMapMarker>
+                        :position="{lat: site.lat, lng: site.lng}"
+                        :animation="(currentlySpeaking === site.id) ? bounce : animation"
+                        ref="sites"
+            ></GMapMarker>
             <GMapCircle
                 :options="circleOptions"
                 :radius="accuracy"
@@ -106,7 +109,10 @@ export default {
                 strokeOpacity: 0.9,
                 strokeWeight: 1,
                 scale: 7
-            }
+            },
+            animation: 'BOUNCE',
+            bounce: '',
+            currentlySpeaking: -1
 
         }
     },
@@ -133,6 +139,9 @@ export default {
                 this.locationDenied = true;
         },
         moveUser(position) {
+            if (!this.synth.speaking){
+                this.currentlySpeaking = -1;
+            }
             if (position.coords.accuracy < 10) {
                 this.accuracy = position.coords.accuracy;
                 this.user.lat = position.coords.latitude;
@@ -178,12 +187,13 @@ export default {
         updateSites() {
             router.post('visitor/markers', {position: this.user}, {
                 onSuccess: () => {
-                    this.sites = this.$page.props.flash.message.sites
+                    this.sites = this.$page.props.flash.message.sites;
                 }
+
             });
         },
         displaySite(site) {
-            if (this.touring) {
+                this.currentlySpeaking = site.id;
                 const speakText = new SpeechSynthesisUtterance(site.text);
                 speakText.voice = this.voice;
                 speakText.onerror = (error) => {
@@ -198,7 +208,6 @@ export default {
                 })
                 this.synth.speak(speakText);
                 this.alreadySpoken.push(site.id);
-            }
         },
         checkHeading(position, site) {
             let heading = position.coords.heading;
@@ -274,6 +283,7 @@ export default {
                     scale: 7
                 };
                 map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.tourModeButton); // eslint-disable-line no-undef
+                this.bounce = google.maps.Animation.BOUNCE;
             });
         },
         tourModeClick() {
@@ -282,6 +292,8 @@ export default {
                 this.touring = true;
             } else {
                 this.touring = false;
+                this.currentlySpeaking = -1;
+                this.synth.cancel();
                 this.tourModeButton.textContent = 'Start Tour';
             }
         },
