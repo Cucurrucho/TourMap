@@ -81,10 +81,6 @@ export default {
             user: {},
             watcherId: null,
             locationDenied: false,
-            icon: {
-                url: "https://img.icons8.com/emoji/12x/blue-circle-emoji.png",
-                scaledSize: {width: 20, height: 20},
-            },
             center: {},
             sites: [],
             currentPosition: {},
@@ -103,6 +99,14 @@ export default {
                 fillColor: "#0080FE",
                 fillOpacity: 0.35,
             },
+            icon: {
+                fillColor: '#00F',
+                fillOpacity: 0.6,
+                strokeColor: '#00A',
+                strokeOpacity: 0.9,
+                strokeWeight: 1,
+                scale: 7
+            }
 
         }
     },
@@ -129,7 +133,7 @@ export default {
                 this.locationDenied = true;
         },
         moveUser(position) {
-            if (position.coords.accuracy < 10    ){
+            if (position.coords.accuracy < 10) {
                 this.accuracy = position.coords.accuracy;
                 this.user.lat = position.coords.latitude;
                 this.user.lng = position.coords.longitude;
@@ -260,6 +264,15 @@ export default {
                 this.tourModeButton.addEventListener("click", () => {
                     this.tourModeClick();
                 });
+                this.icon = {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#00F',
+                    fillOpacity: 0.6,
+                    strokeColor: '#00A',
+                    strokeOpacity: 0.9,
+                    strokeWeight: 1,
+                    scale: 7
+                };
                 map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.tourModeButton); // eslint-disable-line no-undef
             });
         },
