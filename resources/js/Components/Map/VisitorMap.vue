@@ -20,6 +20,11 @@
             <GMapMarker v-for="site in sites" :key="site.id"
                         @click="$toast.info('distance between user and this: ' + distance(user.lng, user.lat, site.lng, site.lat))"
                         :position="{lat: site.lat, lng: site.lng}"></GMapMarker>
+            <GMapCircle
+                :options="circleOptions"
+                :radius="accuracy"
+                :center="user"
+            />
         </GMapMap>
         <div class="text-center mt-5" v-if="locationDenied">
             <div class="text-red-800 text-lg">
@@ -78,8 +83,7 @@ export default {
             locationDenied: false,
             icon: {
                 url: "https://img.icons8.com/emoji/12x/blue-circle-emoji.png",
-                scaledSize: {width: 30, height: 30},
-                labelOrigin: {x: 16, y: -10}
+                scaledSize: {width: 20, height: 20},
             },
             center: {},
             sites: [],
@@ -90,7 +94,15 @@ export default {
             alreadySpoken: [],
             voice: null,
             touring: false,
-            tourModeButton: null
+            tourModeButton: null,
+            accuracy: 0,
+            circleOptions: {
+                strokeColor: "#0080FE",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: "#0080FE",
+                fillOpacity: 0.35,
+            },
 
         }
     },
@@ -101,6 +113,7 @@ export default {
             this.user.heading = position.coords.heading;
             this.center.lat = position.coords.latitude;
             this.center.lng = position.coords.longitude;
+            this.accuracy = position.coords.accuracy;
             this.located = true;
             this.locationDenied = false;
             this.updateSites();
@@ -117,6 +130,7 @@ export default {
         },
         moveUser(position) {
             if (position.coords.accuracy < 10    ){
+                this.accuracy = position.coords.accuracy;
                 this.user.lat = position.coords.latitude;
                 this.user.lng = position.coords.longitude;
                 if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
