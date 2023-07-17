@@ -18,10 +18,10 @@
                         @click="$toast.info('lat: ' + user.lat + ' lng: ' + user.lng)"
             />
             <GMapMarker v-for="site in sites" :key="site.id"
-                        @click="$toast.info('distance between user and this: ' + distance(user.lng, user.lat, site.lng, site.lat))"
+                        @click="(event) => markerClick(event,site)"
                         :position="{lat: site.lat, lng: site.lng}"
-                        :animation="(currentlySpeaking === site.id) ? bounce : animation"
                         ref="sites"
+                        :animation="(currentlySpeaking === site.id) || (adamBounce.includes(site.id))  ? bounce : animation"
             ></GMapMarker>
             <GMapCircle
                 :options="circleOptions"
@@ -74,8 +74,10 @@ export default {
                     {
                         featureType: "poi.business",
                         stylers: [{visibility: "off"}],
-                    }
-                ]
+                    },
+                ],
+                tap: false
+
             },
             bounds: [],
             located: false,
@@ -88,7 +90,7 @@ export default {
             sites: [],
             currentPosition: {},
             searchDistance: 0.015,
-            displayDistance: 20,
+            displayDistance: 60,
             synth: window.speechSynthesis,
             alreadySpoken: [],
             voice: null,
@@ -112,7 +114,11 @@ export default {
             },
             animation: 'BOUNCE',
             bounce: '',
-            currentlySpeaking: -1
+            currentlySpeaking: -1,
+            adamModeButton: null,
+            adamTour: false,
+            click: false,
+            adamBounce: []
 
         }
     },
@@ -130,6 +136,9 @@ export default {
 
         },
         moving(position) {
+            if (!this.synth.speaking) {
+                this.currentlySpeaking = -1;
+            }
             if (this.user.lat !== position.coords.latitude) {
                 this.moveUser(position);
             }
@@ -138,48 +147,71 @@ export default {
             if (error.code === error.PERMISSION_DENIED)
                 this.locationDenied = true;
         },
+
         moveUser(position) {
-            if (!this.synth.speaking){
-                this.currentlySpeaking = -1;
+            let coords = position.coords;
+            if (this.distance(this.center.lng, this.center.lat, coords.longitude, coords.latitude) > 1500) {
+                this.updateSites()
+                this.center.lng = coords.longitude;
+                this.center.lat = coords.latitude;
             }
-            if (position.coords.accuracy < 10) {
+            if (this.touring) {
+                this.normalTour(position);
+
+            } else {
                 this.accuracy = position.coords.accuracy;
                 this.user.lat = position.coords.latitude;
                 this.user.lng = position.coords.longitude;
-                if (Math.abs(this.user.lat - position.coords.latitude) > this.searchDistance || Math.abs(this.user.lng - position.coords.longitude) > this.searchDistance) {
-                    this.updateSites()
+                if (this.adamTour) {
+                    this.adamTourOn(position)
                 }
-                if (this.touring) {
-                    if (!this.synth.speaking) {
-                        let closeSites = [];
-                        this.sites.forEach((site) => {
-                            if (this.distance(site.lng, site.lat, this.user.lng, this.user.lat) < this.displayDistance) {
-                                closeSites.push(site);
+            }
+
+        },
+        adamTourOn() {
+            this.sites.forEach((site) => {
+                if (this.distance(site.lng, site.lat, this.user.lng, this.user.lat) < this.displayDistance) {
+                    this.adamBounce.push(site.id)
+                } else {
+                    let index = this.adamBounce.indexOf(site.id);
+                    if (index !== -1) {
+                        this.adamBounce.splice(index, 1);
+                    }
+                }
+            });
+        },
+        normalTour(position) {
+            if (position.coords.accuracy < 10) {
+
+                if (!this.synth.speaking) {
+                    let closeSites = [];
+                    this.sites.forEach((site) => {
+                        if (this.distance(site.lng, site.lat, this.user.lng, this.user.lat) < this.displayDistance) {
+                            closeSites.push(site);
+                        }
+                    })
+                    switch (closeSites.length) {
+                        case 0:
+                            break;
+                        case 1:
+                            if (this.checkHeading(position, closeSites[0])) {
+                                let site = closeSites[0];
+                                if (!this.alreadySpoken.includes(site.id)) {
+                                    this.displaySite(site);
+                                    this.$toast.info(site.name);
+                                }
                             }
-                        })
-                        switch (closeSites.length) {
-                            case 0:
-                                break;
-                            case 1:
-                                if (this.checkHeading(position, closeSites[0])) {
-                                    let site = closeSites[0];
+                            break;
+                        default:
+                            closeSites.forEach((site) => {
+                                if (this.checkHeading(position, site)) {
                                     if (!this.alreadySpoken.includes(site.id)) {
                                         this.displaySite(site);
                                         this.$toast.info(site.name);
                                     }
                                 }
-                                break;
-                            default:
-                                closeSites.forEach((site) => {
-                                    if (this.checkHeading(position, site)) {
-                                        if (!this.alreadySpoken.includes(site.id)) {
-                                            this.displaySite(site);
-                                            this.$toast.info(site.name);
-                                        }
-                                    }
-                                })
-                                break;
-                        }
+                            })
+                            break;
                     }
                 }
             }
@@ -193,21 +225,21 @@ export default {
             });
         },
         displaySite(site) {
-                this.currentlySpeaking = site.id;
-                const speakText = new SpeechSynthesisUtterance(site.text);
-                speakText.voice = this.voice;
-                speakText.onerror = (error) => {
-                    this.$toast.error(error.name)
-                }
-                this.$toast.open({
-                    message: site.text,
-                    type: "info",
-                    position: "top",
-                    duration: 0,
-                    dismissible: true
-                })
-                this.synth.speak(speakText);
-                this.alreadySpoken.push(site.id);
+            this.currentlySpeaking = site.id;
+            const speakText = new SpeechSynthesisUtterance(site.text);
+            speakText.voice = this.voice;
+            speakText.onerror = (error) => {
+                this.$toast.error(error.name)
+            }
+            this.$toast.open({
+                message: site.text,
+                type: "info",
+                position: "top",
+                duration: 0,
+                dismissible: true
+            })
+            this.synth.speak(speakText);
+            this.alreadySpoken.push(site.id);
         },
         checkHeading(position, site) {
             let heading = position.coords.heading;
@@ -282,12 +314,22 @@ export default {
                     strokeWeight: 1,
                     scale: 7
                 };
-                map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.tourModeButton); // eslint-disable-line no-undef
+                this.adamModeButton = document.createElement('button');
+                this.adamModeButton.classList.add("bg-green-500", "hover:bg-green-700", "text-white", "font-bold", "w-32", "rounded", 'text-base', 'mb-10', 'h-auto', 'ml-2');
+                this.adamModeButton.textContent = 'Start Adam Tour';
+                this.adamModeButton.type = 'button';
+                this.adamModeButton.addEventListener('click', () => {
+                    this.adamModeClick();
+                })
+                map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.tourModeButton);
+                map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.adamModeButton);
+
                 this.bounce = google.maps.Animation.BOUNCE;
             });
         },
         tourModeClick() {
             if (!this.touring) {
+                this.adamModeButton.classList.add('invisible')
                 this.tourModeButton.textContent = 'End Tour';
                 this.touring = true;
             } else {
@@ -295,6 +337,8 @@ export default {
                 this.currentlySpeaking = -1;
                 this.synth.cancel();
                 this.tourModeButton.textContent = 'Start Tour';
+                this.adamModeButton.classList.remove('invisible')
+
             }
         },
         distance(lon1, lat1, lon2, lat2) {
@@ -307,6 +351,32 @@ export default {
             var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             var d = R * c; // Distance in km
             return d;
+        },
+        adamModeClick() {
+            if (!this.adamTour) {
+                this.tourModeButton.classList.add('invisible')
+                this.adamModeButton.textContent = 'End Tour';
+                this.adamTour = true;
+            } else {
+                this.adamTour = false;
+                this.currentlySpeaking = -1;
+                this.synth.cancel();
+                this.adamModeButton.textContent = 'Start Adam Tour';
+                this.tourModeButton.classList.remove('invisible')
+            }
+        },
+        markerClick(event, site) {
+            if (!this.click) {
+                this.click = true;
+                if (this.adamTour) {
+                    this.displaySite(site);
+                } else {
+                    this.$toast.info(site.name + ' distance is ' + this.distance(site.lng, site.lat, this.user.lng, this.user.lat))
+                }
+            } else {
+                this.click = false;
+            }
+
         }
     },
     unmounted() {
