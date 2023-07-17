@@ -90,7 +90,7 @@ export default {
             sites: [],
             currentPosition: {},
             searchDistance: 0.015,
-            displayDistance: 60,
+            displayDistance: 26,
             synth: window.speechSynthesis,
             alreadySpoken: [],
             voice: null,
