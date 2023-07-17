@@ -28,6 +28,9 @@
                 :radius="accuracy"
                 :center="user"
             />
+            <GMapCircle v-if="adamTour" :options="adamCircleOptions"
+                        :radius="searchDistance"
+                        :center="user"></GMapCircle>
         </GMapMap>
         <div class="text-center mt-5" v-if="locationDenied">
             <div class="text-red-800 text-lg">
@@ -102,6 +105,13 @@ export default {
                 strokeOpacity: 0.8,
                 strokeWeight: 2,
                 fillColor: "#0080FE",
+                fillOpacity: 0.35,
+            },
+            adamCircleOptions: {
+                strokeColor: "#fa4b3e",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: "#fa4b3e",
                 fillOpacity: 0.35,
             },
             icon: {
@@ -182,7 +192,9 @@ export default {
         },
         normalTour(position) {
             if (position.coords.accuracy < 10) {
-
+                this.accuracy = position.coords.accuracy;
+                this.user.lat = position.coords.latitude;
+                this.user.lng = position.coords.longitude;
                 if (!this.synth.speaking) {
                     let closeSites = [];
                     this.sites.forEach((site) => {
