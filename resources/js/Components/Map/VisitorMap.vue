@@ -21,15 +21,15 @@
                         @click="(event) => markerClick(event,site)"
                         :position="{lat: site.lat, lng: site.lng}"
                         ref="sites"
-                        :animation="(currentlySpeaking === site.id) || (adamBounce.includes(site.id))  ? bounce : animation"
+                        :animation="(currentlySpeaking === site.id) || (alternativeTour & distance(site.lng, site.lat, user.lng, user.lat) < displayDistance)  ? bounce : animation"
             ></GMapMarker>
             <GMapCircle
                 :options="circleOptions"
                 :radius="accuracy"
                 :center="user"
             />
-            <GMapCircle v-if="adamTour" :options="adamCircleOptions"
-                        :radius="searchDistance"
+            <GMapCircle v-if="alternativeTour" :options="alternativeCircleOptions"
+                        :radius="displayDistance"
                         :center="user"></GMapCircle>
         </GMapMap>
         <div class="text-center mt-5" v-if="locationDenied">
@@ -107,7 +107,7 @@ export default {
                 fillColor: "#0080FE",
                 fillOpacity: 0.35,
             },
-            adamCircleOptions: {
+            alternativeCircleOptions: {
                 strokeColor: "#fa4b3e",
                 strokeOpacity: 0.8,
                 strokeWeight: 2,
@@ -125,10 +125,10 @@ export default {
             animation: 'BOUNCE',
             bounce: '',
             currentlySpeaking: -1,
-            adamModeButton: null,
-            adamTour: false,
+            alternativeModeButton: null,
+            alternativeTour: false,
             click: false,
-            adamBounce: []
+            alternativeBounce: []
 
         }
     },
@@ -172,26 +172,26 @@ export default {
                 this.accuracy = position.coords.accuracy;
                 this.user.lat = position.coords.latitude;
                 this.user.lng = position.coords.longitude;
-                if (this.adamTour) {
-                    this.adamTourOn(position)
+                if (this.alternativeTour) {
+                    this.alternativeTourOn(position)
                 }
             }
 
         },
-        adamTourOn() {
+        alternativeTourOn() {
             this.sites.forEach((site) => {
                 if (this.distance(site.lng, site.lat, this.user.lng, this.user.lat) < this.displayDistance) {
-                    this.adamBounce.push(site.id)
+                    this.alternativeBounce.push(site.id)
                 } else {
-                    let index = this.adamBounce.indexOf(site.id);
+                    let index = this.alternativeBounce.indexOf(site.id);
                     if (index !== -1) {
-                        this.adamBounce.splice(index, 1);
+                        this.alternativeBounce.splice(index, 1);
                     }
                 }
             });
         },
         normalTour(position) {
-            if (position.coords.accuracy < 10) {
+            if (position.coords.accuracy <= 15) {
                 this.accuracy = position.coords.accuracy;
                 this.user.lat = position.coords.latitude;
                 this.user.lng = position.coords.longitude;
@@ -326,22 +326,22 @@ export default {
                     strokeWeight: 1,
                     scale: 7
                 };
-                this.adamModeButton = document.createElement('button');
-                this.adamModeButton.classList.add("bg-green-500", "hover:bg-green-700", "text-white", "font-bold", "w-32", "rounded", 'text-base', 'mb-10', 'h-auto', 'ml-2');
-                this.adamModeButton.textContent = 'Start Adam Tour';
-                this.adamModeButton.type = 'button';
-                this.adamModeButton.addEventListener('click', () => {
-                    this.adamModeClick();
+                this.alternativeModeButton = document.createElement('button');
+                this.alternativeModeButton.classList.add("bg-green-500", "hover:bg-green-700", "text-white", "font-bold", "w-32", "rounded", 'text-base', 'mb-10', 'h-auto', 'ml-2');
+                this.alternativeModeButton.textContent = 'Start Alternative Tour';
+                this.alternativeModeButton.type = 'button';
+                this.alternativeModeButton.addEventListener('click', () => {
+                    this.alternativeModeClick();
                 })
                 map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.tourModeButton);
-                map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.adamModeButton);
+                map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(this.alternativeModeButton);
 
                 this.bounce = google.maps.Animation.BOUNCE;
             });
         },
         tourModeClick() {
             if (!this.touring) {
-                this.adamModeButton.classList.add('invisible')
+                this.alternativeModeButton.classList.add('invisible')
                 this.tourModeButton.textContent = 'End Tour';
                 this.touring = true;
             } else {
@@ -349,7 +349,7 @@ export default {
                 this.currentlySpeaking = -1;
                 this.synth.cancel();
                 this.tourModeButton.textContent = 'Start Tour';
-                this.adamModeButton.classList.remove('invisible')
+                this.alternativeModeButton.classList.remove('invisible')
 
             }
         },
@@ -364,23 +364,23 @@ export default {
             var d = R * c; // Distance in km
             return d;
         },
-        adamModeClick() {
-            if (!this.adamTour) {
+        alternativeModeClick() {
+            if (!this.alternativeTour) {
                 this.tourModeButton.classList.add('invisible')
-                this.adamModeButton.textContent = 'End Tour';
-                this.adamTour = true;
+                this.alternativeModeButton.textContent = 'End Tour';
+                this.alternativeTour = true;
             } else {
-                this.adamTour = false;
+                this.alternativeTour = false;
                 this.currentlySpeaking = -1;
                 this.synth.cancel();
-                this.adamModeButton.textContent = 'Start Adam Tour';
+                this.alternativeModeButton.textContent = 'Start Alternative Tour';
                 this.tourModeButton.classList.remove('invisible')
             }
         },
         markerClick(event, site) {
             if (!this.click) {
                 this.click = true;
-                if (this.adamTour) {
+                if (this.alternativeTour) {
                     this.displaySite(site);
                 } else {
                     this.$toast.info(site.name + ' distance is ' + this.distance(site.lng, site.lat, this.user.lng, this.user.lat))
