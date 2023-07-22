@@ -238,7 +238,7 @@ export default {
         },
         displaySite(site) {
             this.currentlySpeaking = site.id;
-            const speakText = new SpeechSynthesisUtterance(site.text);
+            const speakText = new SpeechSynthesisUtterance(site.name + " " +site.text);
             speakText.voice = this.voice;
             speakText.onerror = (error) => {
                 this.$toast.error(error.name)
@@ -262,43 +262,22 @@ export default {
                     break;
                 case (315 <= heading || 0 <= heading < 45):
                     if (lat > site.lat) {
-                        if (lng > site.lng) {
-                            this.$toast.info('Site: ' + site.name + ' to the right')
-                        } else {
-                            this.$toast.info('Site: ' + site.name + ' to the left')
-                        }
                         return true;
                     }
                     break;
                 case (45 <= heading < 125):
                     if (lng > site.lng) {
-                        if (lat > site.lat) {
-                            this.$toast.info('Site: ' + site.name + ' to the right')
-                        } else {
-                            this.$toast.info('Site: ' + site.name + ' to the left')
-                        }
                         return true;
-
                     }
                     break;
                 case (125 <= heading < 225):
                     if (lat < site.lat) {
-                        if (lng > site.lng) {
-                            this.$toast.info('Site: ' + site.name + ' to the left')
-                        } else {
-                            this.$toast.info('Site: ' + site.name + ' to the right')
-                        }
                         return true;
 
                     }
                     break;
                 case (225 <= heading < 315):
                     if (lng < site.lng) {
-                        if (lat > site.lat) {
-                            this.$toast.info('Site: ' + site.name + ' to the left')
-                        } else {
-                            this.$toast.info('Site: ' + site.name + ' to the right')
-                        }
                         return true;
                     }
                     break;
